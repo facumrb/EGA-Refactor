@@ -2,8 +2,6 @@
 
 ## Presentación del Proyecto
 
-Este repositorio contiene una versión refactorizada de un Algoritmo Genético Elitista (EGA). El objetivo principal de esta refactorización ha sido mejorar la calidad del código, aplicando principios de "Clean Code" para aumentar su legibilidad, mantenibilidad y extensibilidad.
-
 El proyecto se centra en un problema de optimización de sistemas de ecuaciones diferenciales ordinarias (EDOs) que modelan redes de regulación génica. El EGA busca los parámetros que mejor ajustan la trayectoria celular (el comportamiento dinámico del sistema) a un estado objetivo predefinido.
 
 ## Guía de Uso
@@ -67,4 +65,5 @@ La tarea es:
 3.  **Ejecutar el programa y analizar los errores**: Identificá los fallos que impiden que el programa se ejecute correctamente.
 4.  **Proponer e implementar soluciones**: Creá una rama (dev branch) para solucionar los errores y mejorar el código.
 5.  **Prueba y validación**: Ejecutá el programa en la rama dev para verificar que los cambios solucionaron los problemas.
+
 6.  **Comunicá tus cambios**: Si todo funciona como esperado, nos comunicamos para fusionar la rama dev en la rama principal (main branch) y seguimos con futuros objetivos.
