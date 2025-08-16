@@ -1,0 +1,101 @@
+# Archivo de configuración para el Algoritmo Genético Elitista (EGA).
+
+# --- Parámetros del Algoritmo Genético ---
+
+# Tamaño de la población: número de individuos en cada generación.
+populationSize: 30 # Valor sugerido: 40–60
+# Debe ser lo suficientemente grande para explorar diversidad, 
+# pero limitado por el costo computacional del evaluador ODE.
+
+# Número de generaciones: cuántas iteraciones ejecutará el algoritmo.
+generations: 25 # Valor sugerido: 40–100
+# Debe permitir convergencia razonable con el budget computacional.
+
+# Tasa de cruzamiento: probabilidad de que dos padres se crucen para crear descendencia.
+crossover_rate: 0.8 # Valor sugerido: 0.7–0.9
+# Mantener alto para recombinación eficiente.
+
+# Tasa de mutación: probabilidad de que un gen de un individuo mute.
+mutation_rate: 0.15 # Valor sugerido: 0.1–0.2
+# Probabilidad por gen de mutación gaussiana. 
+# Crucial para mantener exploración y evitar convergencia prematura.
+
+# Tamaño de la élite: número de los mejores individuos que pasan directamente a la siguiente generación.
+elite_size: 3 # Valor sugerido: 1–5
+
+# Parámetro alfa para el cruzamiento BLX-alpha. Controla la dispersión de la descendencia.
+alpha_blx: 0.15 # Valor sugerido: 0.1–0.3 (comúnmente ~0.1–0.15)
+
+# Escala de la mutación: desviación estándar para la mutación gaussiana, por cada parámetro.
+mutation_scale: [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]
+# Valor sugerido: 0.05 para parámetros sensibles; por ejemplo [0.05, 0.05, 0.2, ...]
+# Basado en rango (x_max − x_min)/6 es estándar para continous domains.
+
+# Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
+bounds:
+  - [0.1, 3.0]
+  - [0.01, 1.0]
+  - [-3.0, 3.0]
+  - [0.1, 3.0]
+  - [0.01, 1.0]
+  - [-3.0, 3.0]
+  - [0.1, 3.0]
+  - [0.01, 1.0]
+  - [-3.0, 3.0]
+# Fundamental para reparación y validez biológica.
+# Es parte del diseño del evaluador y contexto del sistema biológico.
+
+# --- Parámetros de Evaluación y Ejecución ---
+
+# Tiempo máximo de espera (en segundos) para la evaluación de un solo individuo.
+timeout: 20.0 # Valor sugerido: 15–30 s
+# Es práctica recomendada en supervisión de evaluadores pesados.
+
+# Número de procesos a utilizar para evaluar la población en paralelo.
+processes: 7 # Valor sugerido: max(1, cpu_count() − 1)
+# Mejores prácticas de multiprocessing en Python; evitar saturar memoria.
+
+# Semilla para la generación de números aleatorios, para resultados reproducibles.
+seed: 42 # Valor sugerido: cualquier entero
+# Estándar en experimentación reproducible; mencionado en estudio sobre init.
+
+# --- Parámetros del Evaluador (Modelo ODE) ---
+
+# Intervalo de tiempo para la simulación de la Ecuación Diferencial Ordinaria (ODE). Formato: [inicio, fin].
+t_span: [0, 40] # Valor sugerido: [0, 40]
+# Configurable; depende del sistema.
+
+# Paso de tiempo para la simulación.
+dt: 0.5 # Valor sugerido: 0.5 para estabilidad numérica y eficiencia computacional
+# Debe ser lo suficientemente pequeño para capturar la dinámica del sistema.
+# Debe ser lo suficientemente grande para reducir el costo computacional.
+
+# Desviación estándar del ruido a añadir en la simulación (si se desea).
+noise_std: 0.0 # Valor sugerido: 0.0 (0 ruido) para demo
+# Puede subir a 0.05 si deseás robustez fenotípica.
+
+# Objetivo: valores que se esperan alcanzar en la simulación.
+target: [1.0, 0.8, 0.6] # Valor sugerido: [1.0, 0.8, 0.6]
+# Vector objetivo de expresión génica final (trayectoria objetivo).
+# Diseño del evaluador, depende del fenotipo condrogénico simulado.
+
+# Directorio para guardar los "snapshots" JSON (estados intermedios) de cada generación.
+snapshot_dir: "snapshots"
+# JSON para facilitar análisis posterior y reproducibilidad.
+
+# Número de participantes en la selección por torneo.
+tournament_k: 3 # Valor sugerido: 3
+# Controla presión selectiva. Mayor k aumenta presión selectiva, pero puede reducir diversidad.
+
+# Todos los valores están razonados: 
+#balancean exploración, plausibility biológica y coste computacional.
+# Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
+# usadas en otros problemas paramétricos.
+
+# Parámetros ajustados para 1 hora y 20 minutos
+# populationSize: 50
+# generations: 80
+# evaluador: promedio de 1.2 segundos por evaluación
+# Tiempo estimado: 50 × 80 × 1.2 = 4800 segundos = 1 hora y 20 minutos
+# Los valores actuales de populationSize y generations de un tiempo estimado total 
+# de ejecución es de 15 minutos
