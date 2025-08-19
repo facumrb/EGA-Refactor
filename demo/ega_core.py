@@ -99,6 +99,12 @@ class Individual:
         ind.fitness = self.fitness
         return ind
 
+    def copy(self):
+        ind = Individual(self.bounds)
+        ind.params = np.array(self.params, copy=True)
+        ind.fitness = self.fitness
+        return ind
+
 # -----------------------
 # Operadores
 # -----------------------
@@ -118,6 +124,22 @@ def blx_alpha_crossover(p1: np.ndarray, p2: np.ndarray, alpha=0.3, bounds=None):
     Returns:
         np.ndarray: El vector de parámetros del hijo.
     """
+    n = len(p1)
+    child = np.zeros(n, dtype=float)
+    for i in range(n):
+        cmin = min(p1[i], p2[i])
+        cmax = max(p1[i], p2[i])
+        I = cmax - cmin
+        low = cmin - alpha * I
+        high = cmax + alpha * I
+        # Respect global bounds if provided
+        if bounds is not None:
+            low = max(low, bounds[i,0])
+            high = min(high, bounds[i,1])
+        child[i] = random.uniform(low, high)
+    if bounds is not None:
+        child = np.clip(child, bounds[:,0], bounds[:,1])
+    return child
 
 def gaussian_mutation(params: np.ndarray, mutation_rate: float, mutation_scale: np.ndarray, bounds=None):
     """\Aplica una mutación gaussiana a un vector de parámetros.
