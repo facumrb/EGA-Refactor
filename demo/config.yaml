@@ -1,4 +1,9 @@
 # Archivo de configuración para el Algoritmo Genético Elitista (EGA).
+# Este archivo es el panel de control de la simulación. 
+# Define tanto el comportamiento del algoritmo genético 
+# como las especificaciones del problema biológico que se intenta resolver. 
+# Un error aquí no es un error de sintaxis, sino un error en el diseño experimental, 
+# que puede llevar a resultados sin sentido o a tiempos de cómputo excesivos.
 
 # --- Parámetros del Algoritmo Genético ---
 

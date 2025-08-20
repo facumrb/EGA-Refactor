@@ -56,6 +56,15 @@ def safe_round_tuple(arr, digits=6):
 class Individual:
     """Representa a un individuo en la población del algoritmo genético.
     
+    Propósito : Es el objeto fundamental. 
+    No es más que un contenedor para un np.ndarray (un vector de números) llamado params,
+    que representa una única solución candidata al problema. 
+    También guarda su fitness una vez calculado.
+
+    Biología : Un Individual es análogo a un organismo. 
+    Sus params son su "genotipo", una receta numérica. 
+    Su fitness es una medida de su éxito en el "ambiente" simulado (el fenotipo).
+
     Un individuo contiene un conjunto de parámetros (genes) que representan una posible 
     solución al problema. También almacena su 'fitness', que es una medida de qué tan buena 
     es esa solución.
@@ -70,9 +79,17 @@ class Individual:
             init_strategy (str): La estrategia para inicializar los parámetros. 
                                  Puede ser 'uniform' (aleatorio dentro de los límites) o 
                                  'center' (justo en el medio de los límites).
+
+        bounds define el espacio de búsqueda de soluciones viables, es decir, las restricciones 
+        físicas o biológicas de los parámetros del sistema.
+        self.params es el genotipo del individuo, la secuencia específica de valores que lo define.
+        self.fitness es la aptitud biológica , una medida cuantitativa de cuán bien se adapta ese 
+        genotipo al entorno (al problema a resolver).
         """
-        self.bounds = np.array(bounds, dtype=float)
-        self.n = self.bounds.shape[0]
+        
+        self.bounds = np.array(bounds, dtype=float) # Límites de los parámetros
+        self.n = self.bounds.shape[0] # Número de parámetros
+
         if init_strategy == "uniform":
             self.params = self.bounds[:,0] + np.random.rand(self.n) * (self.bounds[:,1] - self.bounds[:,0])
         elif init_strategy == "center":
@@ -99,36 +116,42 @@ class Individual:
         ind.fitness = self.fitness
         return ind
 
-    def copy(self):
-        ind = Individual(self.bounds)
-        ind.params = np.array(self.params, copy=True)
-        ind.fitness = self.fitness
-        return ind
-
 # -----------------------
 # Operadores
 # -----------------------
-def blx_alpha_crossover(p1: np.ndarray, p2: np.ndarray, alpha=0.3, bounds=None):
+"""
+Propósito: Son las funciones que crean nueva diversidad genética. 
+Toman uno o dos individuos "padres" y generan un nuevo individuo "hijo" 
+con una combinación o variación de sus parámetros.
+"""
+
+def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, alpha=0.3, bounds=None):
     """Realiza el cruzamiento BLX-alpha entre dos padres para crear un hijo.
     
     Este tipo de cruzamiento está diseñado para variables continuas. Crea un nuevo valor
     para cada gen del hijo tomándolo de un rango extendido alrededor de los valores de los
-    padres. El parámetro 'alpha' controla cuánto se puede extender este rango.
+    padres. 
+    El parámetro 'alpha' controla cuánto se puede extender este rango:
+    si alpha = 0 , el hijo siempre tendrá valores entre los de sus padres. 
+    Si alpha > 0 , se permite la extrapolación, es decir, que el hijo explore 
+    valores ligeramente fuera del rango de sus padres, lo que puede acelerar la 
+    búsqueda de soluciones novedosas. Es un operador de cruce diseñado para 
+    variables continuas (números reales).
     
     Args:
-        p1 (np.ndarray): Vector de parámetros del primer padre.
-        p2 (np.ndarray): Vector de parámetros del segundo padre.
+        parent1 (np.ndarray): Vector de parámetros del primer padre.
+        parent2 (np.ndarray): Vector de parámetros del segundo padre.
         alpha (float): Factor de expansión del rango.
         bounds (np.ndarray): Límites globales para los parámetros.
         
     Returns:
         np.ndarray: El vector de parámetros del hijo.
     """
-    n = len(p1)
+    n = len(parent1)
     child = np.zeros(n, dtype=float)
     for i in range(n):
-        cmin = min(p1[i], p2[i])
-        cmax = max(p1[i], p2[i])
+        cmin = min(parent1[i], parent2[i])
+        cmax = max(parent1[i], parent2[i])
         I = cmax - cmin
         low = cmin - alpha * I
         high = cmax + alpha * I
@@ -139,10 +162,16 @@ def blx_alpha_crossover(p1: np.ndarray, p2: np.ndarray, alpha=0.3, bounds=None):
         child[i] = random.uniform(low, high)
     if bounds is not None:
         child = np.clip(child, bounds[:,0], bounds[:,1])
+        """
+        np.clip(..., bounds[:,0], bounds[:,1]) es crucial: 
+        se aseguran de que, incluso después de un cruzamiento o mutación "extremos", 
+        los parámetros del nuevo individuo nunca violen los límites biológicamente plausibles 
+        que definimos en bounds.
+        """
     return child
 
 def gaussian_mutation(params: np.ndarray, mutation_rate: float, mutation_scale: np.ndarray, bounds=None):
-    """\Aplica una mutación gaussiana a un vector de parámetros.
+    """Aplica una mutación gaussiana a un vector de parámetros.
     
     Para cada parámetro (gen), hay una probabilidad ('mutation_rate') de que mute. 
     Si muta, se le suma un pequeño valor aleatorio obtenido de una distribución normal
@@ -164,8 +193,19 @@ def gaussian_mutation(params: np.ndarray, mutation_rate: float, mutation_scale: 
             # absolute std
             abs_std = std * (bounds[i,1] - bounds[i,0]) if bounds is not None else std
             params[i] += np.random.normal(0, abs_std)
+    """
+    Crea un vector de ruido aleatorio del mismo tamaño, extraído de una distribución 
+    Gaussiana (Normal) con media 0 y desviación estándar igual a scale.
+    Suma este vector de ruido al vector de parámetros original.
+    """
     if bounds is not None:
         params = np.clip(params, bounds[:,0], bounds[:,1])
+        """
+        np.clip(..., bounds[:,0], bounds[:,1]) es crucial: 
+        se aseguran de que, incluso después de un cruzamiento o mutación "extremos", 
+        los parámetros del nuevo individuo nunca violen los límites biológicamente plausibles 
+        que definimos en bounds.
+        """
     return params
 
 # -----------------------
@@ -181,6 +221,7 @@ class EGA:
     def __init__(self, config: Dict, evaluator):
         """
         Inicializa el algoritmo genético.
+        Crea la población inicial de individuos aleatorios (dentro de los bounds definidos).
 
         Args:
             config (Dict): Un diccionario con todos los parámetros de configuración del 
@@ -194,14 +235,14 @@ class EGA:
         np.random.seed(config.get("seed", 42))
         self.evaluator = evaluator
         self.bounds = np.array(config["bounds"], dtype=float)
-        self.pop_size = int(config.get("populationSize", 40))
-        self.generations = int(config.get("generations", 60))
-        self.crossover_rate = float(config.get("crossover_rate", 0.7))
+        self.pop_size = int(config.get("populationSize", 30))
+        self.generations = int(config.get("generations", 25))
+        self.crossover_rate = float(config.get("crossover_rate", 0.8))
         self.mutation_rate = float(config.get("mutation_rate", 0.15))
-        self.elite_size = int(config.get("elite_size", 2))
-        self.alpha_blx = float(config.get("alpha_blx", 0.3))
-        self.mutation_scale = np.array(config.get("mutation_scale", [0.05]*self.bounds.shape[0]), dtype=float)
-        self.timeout = float(config.get("timeout", 30.0))
+        self.elite_size = int(config.get("elite_size", 3))
+        self.alpha_blx = float(config.get("alpha_blx", 0.15))
+        self.mutation_scale = np.array(config.get("mutation_scale", [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]), dtype=float)
+        self.timeout = float(config.get("timeout", 20.0))
         self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
         self.seed = int(config.get("seed", 42))
         self.cache = {}  # caching evaluations: key -> fitness
@@ -211,7 +252,19 @@ class EGA:
         self.pool = Pool(processes=self.processes, initializer=init_worker, initargs=(self.seed,))
 
     def _evaluate_population(self, population_to_eval=None):
-        """Evalúa una lista de individuos. Si no se especifica, evalúa la población entera."""
+        """
+        Evalúa una lista de individuos. Si no se especifica, evalúa la población entera.
+        Usa multiprocessing.Pool para enviar a cada individuo a un núcleo de CPU diferente 
+        para ser evaluado por el evaluator_toy.py. 
+        Esto acelera drásticamente el proceso, que es el cuello de botella computacional.
+        Args:
+            population_to_eval (List[Individual], optional): La población a evaluar. Si no se 
+                                                      especifica, se usa la población actual 
+                                                      del objeto EGA. Defaults to None.
+
+        Returns:
+            List[float]: Una lista con los valores de fitness de cada individuo.
+        """
         if population_to_eval is None:
             population_to_eval = self.population
 
@@ -220,6 +273,10 @@ class EGA:
         
         # Ejecuta las evaluaciones en paralelo
         results = self.pool.map(self._eval_single_wrapper, eval_needed)
+        # Es un cuello de botella:
+        # es donde el programa pasa la mayor parte del tiempo. 
+        # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
+        # en el tiempo total de ejecución.
         
         # Asigna los resultados de fitness a los individuos correspondientes
         for ind, fitness in zip(eval_needed, results):
@@ -239,13 +296,13 @@ class EGA:
         offspring = []
         i = 0
         while len(offspring) < self.pop_size - self.elite_size:
-            p1 = parents[i]
-            p2 = parents[i + 1]
+            parent1 = parents[i]
+            parent2 = parents[i + 1]
 
             if random.random() < self.crossover_rate:
-                child_params = self._crossover(p1.params, p2.params)
+                child_params = self._crossover(parent1.params, parent2.params)
             else:
-                child_params = p1.params.copy()
+                child_params = parent1.params.copy()
 
             child = Individual(self.bounds)
             child.params = child_params
@@ -289,30 +346,6 @@ class EGA:
         # store in cache
         self.cache[key] = float(fitness)
         return float(fitness)
-
-    def evaluate_population(self, population=None):
-        """Evalúa el fitness de una población completa, posiblemente en paralelo.
-
-        Args:
-            population (List[Individual], optional): La población a evaluar. Si no se 
-                                                      especifica, se usa la población actual 
-                                                      del objeto EGA. Defaults to None.
-
-        Returns:
-            List[float]: Una lista con los valores de fitness de cada individuo.
-        """
-        if population is None:
-            population = self.population
-        # Evaluate in parallel using pool.map-like approach with wrapper
-        args = population
-        # For each individual evaluate
-        results = []
-        for ind in args:
-            results.append(self._eval_single(ind))
-        # assign
-        for ind, f in zip(population, results):
-            ind.fitness = f
-        return results
 
     # ---------------------
     # Métodos de selección

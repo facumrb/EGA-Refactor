@@ -1,0 +1,46 @@
+1. Arquitectura General del Pipeline y Flujo de Datos
+
+[ Usuario ] --> ejecuta --> [ run_demo.py ]
+                                    |
+                                    | (1. Carga config)
+                                    v
+                            [ config.yaml ]
+                                    |
+    (2. Inicializa EGA y Evaluador) |
+        ____________________________|_____________________________
+        |                                                          |
+        v                                                          v
+[ ega_core.py ] <--------- (4. Bucle Evolutivo) --------> [ evaluator_toy.py ]
+(El Optimizador)        (Evalúa cada individuo)          (El Sistema Biológico)
+        |                                                          |
+        | (3. Propone soluciones)                                  | (5. Devuelve 'fitness')
+        |__________________________________________________________|                             
+                                    |
+                                    | (6. Reporta resultado final)
+                                    v
+                            [ consola/snapshots ]
+
+Flujo de Datos:
+1. run_demo.py es el director de orquesta. Lee los parámetros desde config.yaml.
+2. Con esta configuración, crea dos objetos principales: una instancia de EGA (el motor de búsqueda) y una instancia de ToyODEEvaluator (el problema a resolver).
+3. El EGA genera una población inicial de "individuos". Cada individuo no es más que un conjunto de parámetros candidatos para el modelo biológico.
+4. Aquí comienza el bucle principal: el EGA le pide al evaluator que determine qué tan "bueno" es cada individuo (solución).
+5. El evaluator ejecuta una simulación biológica (resuelve las EDOs) con los parámetros del individuo y devuelve un puntaje de fitness (un número que indica qué tan cerca estuvo el resultado del objetivo deseado).
+6. El EGA usa estos puntajes para crear una nueva generación de individuos, favoreciendo a los mejores (elitismo, selección) y explorando nuevas posibilidades (cruzamiento, mutación). Este ciclo se repite hasta que se alcanza el número de generaciones definido.
+
+2. Teoría Aplicada
+Esta arquitectura implementa directamente el concepto de Problema Inverso que se menciona en el archivo `Teoría.md` .
+
+- El modelo es el sistema de EDOs dentro de evaluator_toy.py .
+- Los datos experimentales (o el comportamiento deseado) es el target en config.yaml .
+- El problema es encontrar los parámetros ( prod , deg , inter ) que hacen que el modelo replique el target .
+- El método de solución es el Algoritmo Genético de ega_core.py , que explora el vasto "paisaje de fitness" de posibles parámetros para encontrar el mínimo global (la mejor solución).
+
+`ega_core.py` : Es pura matemática y computación evolutiva. No "sabe" nada de biología. Su única tarea es optimizar una función objetivo (encontrar el valor más bajo posible).
+`evaluator_toy.py` : Es pura biología de sistemas (simplificada). Contiene el conocimiento del dominio: cómo los genes interactúan ( _ode_system ) y qué define una "buena" solución biológica ( evaluate ).
+Esta separación permite, por ejemplo, cambiar el modelo biológico por uno completamente diferente (ej. una red neuronal, un modelo metabólico) sin tener que tocar una sola línea de ega_core.py .
+
+3. Puntos Clave de Interpretación
+- Abstracción : El EGA trata a cada individuo como una "caja negra". Solo le interesan los parámetros que entran y el fitness que sale. La complejidad biológica está encapsulada en el evaluador.
+- Costo Computacional : El cuello de botella de todo el pipeline es casi siempre la función evaluate en el evaluador. Resolver sistemas de EDOs es costoso, y el EGA necesita hacerlo miles de veces. Por eso, la implementación usa multiprocessing para paralelizar este paso.
+- Parámetros Críticos : Los parámetros en config.yaml no son triviales. Definen tanto el comportamiento del algoritmo de búsqueda (ej. populationSize , mutation_rate ) como la propia definición del problema biológico (ej. target , t_span ). Un mal ajuste aquí puede llevar a que el algoritmo nunca encuentre una buena solución o tarde demasiado.
