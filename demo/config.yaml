@@ -98,6 +98,14 @@ noise_std: 0.0 # Valor sugerido: 0.0 (0 ruido) para demo
 target: [1.0, 0.8, 0.6] # Valor sugerido: [1.0, 0.8, 0.6]
 # Vector objetivo de expresión génica final (trayectoria objetivo).
 # Diseño del evaluador, depende del fenotipo condrogénico simulado.
+# Cada valor en el array corresponde al nivel de expresión normalizado de un gen clave.
+# El vector target: [1.0, 0.8, 0.6] representa un perfil idealizado de expresión génica normalizada que define 
+# computacionalmente el fenotipo de un condrocito maduro y funcional. Cada componente del vector corresponde a un gen 
+# clave en la condrogénesis, y sus valores indican la intensidad deseada de expresión:
+# 1.0 → activación total de un gen maestro (ej. SOX9), esencial para iniciar la vía condrogénica.
+# 0.8 → alta expresión de un gen estructural como COL2A1 (colágeno tipo II), fundamental en la matriz cartilaginosa.
+# 0.6 → expresión moderada de un gen regulador, posiblemente modulador de diferenciación o estabilidad del fenotipo (RUNX2, ACAN, etc.).
+# En conjunto, este perfil define el estado celular exacto que se considera un condrocito maduro y funcional.
 
 # Directorio para guardar los "snapshots" JSON (estados intermedios) de cada generación.
 snapshot_dir: "snapshots"

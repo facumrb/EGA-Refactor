@@ -104,7 +104,9 @@ class Individual:
         self.bounds = np.array(bounds, dtype=float) 
         # bounds : Representan límites fisiológicos
         self.num_params = self.bounds.shape[0] # Número de parámetros
-
+        # .shape[0]: Obtiene la cantidad de filas del array (cada fila = 1 parámetro)
+        # self.num_params : Almacena el total de parámetros a optimizar
+        
         # Inicialización aleatoria dentro de los límites fisiológicos
         # self.bounds[:,1] selecciona la columna de límites superiores.
         # self.bounds[:,0] selecciona la columna de límites inferiores.
