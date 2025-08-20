@@ -44,3 +44,65 @@ Esta separación permite, por ejemplo, cambiar el modelo biológico por uno comp
 - Abstracción : El EGA trata a cada individuo como una "caja negra". Solo le interesan los parámetros que entran y el fitness que sale. La complejidad biológica está encapsulada en el evaluador.
 - Costo Computacional : El cuello de botella de todo el pipeline es casi siempre la función evaluate en el evaluador. Resolver sistemas de EDOs es costoso, y el EGA necesita hacerlo miles de veces. Por eso, la implementación usa multiprocessing para paralelizar este paso.
 - Parámetros Críticos : Los parámetros en config.yaml no son triviales. Definen tanto el comportamiento del algoritmo de búsqueda (ej. populationSize , mutation_rate ) como la propia definición del problema biológico (ej. target , t_span ). Un mal ajuste aquí puede llevar a que el algoritmo nunca encuentre una buena solución o tarde demasiado.
+
+Leer todo a continuación antes de empezar:
+Tarea: recolectar los estudios que sustentan al proyecto.
+        Para completar esta tarea se recomienda:
+        1. Leer el código recorriendo las funciones que el sistema recorre al ser ejecutado.
+                Nota: Luego del quinto punto (5.) se muestra cómo debe ser recorrido el sistema.
+        2. Leer los comentarios de cada función para comprender el funcionamiento de cada parte.
+        3. Por cada parte, identificar la teoría que sustenta a la función y los valores del sistema (constante, variables, etc).
+                Nota: Los comentarios dan una introducción guía que no es suficiente. Por lo tanto se debe investigar el significado biológico de los valores de atributos, variables, funciones, etc. que se definen en el código para llegar a la exactitud biológica:
+                ¿Por qué se tienen ciertos valores? ¿Cómo se relacionan? ¿En qué contexto biológico se determinan? Se recomienda buscar estudios con relación directa a la aplicación de nuestro proyecto.
+                En `demo\Estudios` dejo el avance que logré con respecto a la investigación, se puede tomar como base.
+        4. En base a la información invetigada, seleccionar los estudios que mayor relevancia tienen y identificar sus partes para articularlas y así estructurar la teoría.
+        5. Por último, la teoría es una recopilación de estudios que sustenta paso a paso el por qué de nuestro proyecto.
+
+        Cómo recorrer el sistema:
+        run_demo.py
+                + def main(): - Comienzo del sistema.
+                        recorrer función hasta
+                + config = { **user_config }
+        config.yaml
+                recorrer completo para tener una visión general.
+                por el momento es necesario conocer los valores y qué son
+                pero al momento de ser usados debe investigarse la teoría
+        run_demo.py
+                + evaluator = ToyODEEvaluator
+                        recorrer instanciación hasta
+                + noise_std=config["noise_std"]
+        evaluator_toy.py
+                + class ToyODEEvaluator:
+                        recorrer clase hasta
+                + self.bounds = np.array(bounds, dtype=float) if bounds is not None else DEFAULT_BOUNDS
+                        (prestar atención a los valores de las constantes y el uso en config.yaml para investigar)
+        run_demo.py
+                + ega_config = 
+                        recorrer código hasta
+                + ega = EGA(ega_config, evaluator)
+        ega_core.py
+                + class EGA
+                        recorre hasta
+                + self.pool = Pool(processes=self.processes, initializer=init_worker, initargs=(self.seed,))
+                        (prestar atención a los valores de las constantes y el uso en config.yaml para investigar)
+                + def init_worker(seed_base: int):
+                        recorrer hasta
+                + _np.random.seed(s)
+        run_demo.py
+                + res = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
+        ega_core.py
+                + run(self, snapshot_dir="snapshots", verbose=True)
+                        recorrer hasta
+                + self._evaluate_population(self.population)
+                + def _evaluate_population(self, population_to_eval=None):
+                        recorrer hasta
+                + key_for_Dictionary = safe_round_tuple(individual.decode())
+                + def decode(self):
+                        recorrer hasta
+                + return np.clip(self.params, self.bounds[:,0], self.bounds[:,1])
+                + def safe_round_tuple(individual_arr, digits=6):
+                        recorrer hasta
+                + return tuple([round(float(gen), digits) for gen in individual_arr])
+                + if key_for_Dictionary in self.cache:
+                        recorrer hasta ...
+        INFORMAR LLEGADA PORQUE YA ES ZONA DE REVISIÓN DE CÓDIGO. NO SEGUIR INVESTIGANDO.
