@@ -48,7 +48,18 @@ def init_worker(seed_base: int):
     _np.random.seed(s)
 
 def safe_round_tuple(arr, digits=6):
+    """
+    Crea una clave única y utilizable para el diccionario de caché ( self.cache ). 
+    Los diccionarios en Python necesitan que sus claves no puedan cambiar (sean inmutables). 
+    Como los params de un individuo son np.ndarray y pueden cambiar, no se pueden usar directamente como clave. 
+    Esta función los convierte en una representación inmutable y estandarizada.
+    """
     return tuple([round(float(x), digits) for x in arr])
+
+def _eval_wrapper(args):
+    """Wrapper to call evaluator's evaluate method. Can be pickled."""
+    evaluator, params = args
+    return evaluator.evaluate(params)
 
 # -----------------------
 # Clase Individual
@@ -88,10 +99,10 @@ class Individual:
         """
         
         self.bounds = np.array(bounds, dtype=float) # Límites de los parámetros
-        self.n = self.bounds.shape[0] # Número de parámetros
+        self.num_params = self.bounds.shape[0] # Número de parámetros
 
         if init_strategy == "uniform":
-            self.params = self.bounds[:,0] + np.random.rand(self.n) * (self.bounds[:,1] - self.bounds[:,0])
+            self.params = self.bounds[:,0] + np.random.rand(self.num_params) * (self.bounds[:,1] - self.bounds[:,0])
         elif init_strategy == "center":
             self.params = (self.bounds[:,0] + self.bounds[:,1]) / 2.0
         else:
@@ -111,6 +122,10 @@ class Individual:
         return np.clip(self.params, self.bounds[:,0], self.bounds[:,1])
 
     def copy(self):
+        """
+        Crea una instancia completamente nueva de la clase Individual.
+        Esto es útil cuando se quiere modificar un individuo sin afectar al original.
+        """
         ind = Individual(self.bounds)
         ind.params = np.array(self.params, copy=True)
         ind.fitness = self.fitness
@@ -125,7 +140,8 @@ Toman uno o dos individuos "padres" y generan un nuevo individuo "hijo"
 con una combinación o variación de sus parámetros.
 """
 
-def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, alpha=0.3, bounds=None):
+def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, blx_alpha=0.3, bounds=None):
+
     """Realiza el cruzamiento BLX-alpha entre dos padres para crear un hijo.
     
     Este tipo de cruzamiento está diseñado para variables continuas. Crea un nuevo valor
@@ -147,19 +163,30 @@ def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, alpha=0.3, bou
     Returns:
         np.ndarray: El vector de parámetros del hijo.
     """
-    n = len(parent1)
-    child = np.zeros(n, dtype=float)
-    for i in range(n):
-        cmin = min(parent1[i], parent2[i])
-        cmax = max(parent1[i], parent2[i])
-        I = cmax - cmin
-        low = cmin - alpha * I
-        high = cmax + alpha * I
+    num_genes = len(parent1)
+    child = np.zeros(num_genes, dtype=float)
+    for gen in range(num_genes):
+        parent_min = min(parent1[gen], parent2[gen])
+        parent_max = max(parent1[gen], parent2[gen])
+        parent_range = parent_max - parent_min
+        sample_min = parent_min - blx_alpha * parent_range
+        sample_max = parent_max + blx_alpha * parent_range
+        """
+        El parámetro BLX-alpha controla cuánto se permite extrapolar 
+        fuera del rango parental (transgresión).
+        """
         # Respect global bounds if provided
         if bounds is not None:
-            low = max(low, bounds[i,0])
-            high = min(high, bounds[i,1])
-        child[i] = random.uniform(low, high)
+            sample_min = max(sample_min, bounds[gen,0])
+            sample_max = min(sample_max, bounds[gen,1])
+        child[gen] = random.uniform(sample_min, sample_max)
+    """
+    Simula un fenómeno conocido como transgresión, donde un descendiente puede exhibir 
+    un fenotipo más extremo que cualquiera de sus padres. Por ejemplo, dos padres de 
+    estatura media pueden tener un hijo más alto o más bajo que ambos. Al permitir que 
+    el hijo explore un poco más allá del espacio genético de sus padres ( alpha > 0 ), 
+    el algoritmo puede descubrir soluciones novedosas más rápidamente.
+    """
     if bounds is not None:
         child = np.clip(child, bounds[:,0], bounds[:,1])
         """
@@ -250,6 +277,8 @@ class EGA:
         self.history = {"min": [], "avg": [], "gen_time": []}
         # Pool
         self.pool = Pool(processes=self.processes, initializer=init_worker, initargs=(self.seed,))
+        # El sistema operativo lanza un número de procesos Python nuevos ( self.processes ). 
+        # Cada uno de estos procesos es un "trabajador" casi idéntico al proceso principal.
 
     def _evaluate_population(self, population_to_eval=None):
         """
@@ -268,29 +297,46 @@ class EGA:
         if population_to_eval is None:
             population_to_eval = self.population
 
-        # Prepara una lista de individuos que necesitan evaluación
-        eval_needed = [ind for ind in population_to_eval if ind.fitness is None]
-        
-        # Ejecuta las evaluaciones en paralelo
-        results = self.pool.map(self._eval_single_wrapper, eval_needed)
-        # Es un cuello de botella:
-        # es donde el programa pasa la mayor parte del tiempo. 
-        # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
-        # en el tiempo total de ejecución.
-        
-        # Asigna los resultados de fitness a los individuos correspondientes
-        for ind, fitness in zip(eval_needed, results):
-            ind.fitness = fitness
+        # Prepara una lista de individuos que necesitan evaluación y maneja la caché
+        eval_needed_individuals = []
+        tasks = []
+        for ind in population_to_eval:
+            if ind.fitness is None:
+                key = safe_round_tuple(ind.decode())
+                if key in self.cache:
+                    ind.fitness = self.cache[key]
+                else:
+                    eval_needed_individuals.append(ind)
+                    tasks.append((self.evaluator, ind.decode()))
 
+        if not eval_needed_individuals:
+            return
+        
+        # Ejecuta las evaluaciones en paralelo usando el wrapper
+        try:
+            results = self.pool.map(_eval_wrapper, tasks)
+            # Es un cuello de botella:
+            # es donde el programa pasa la mayor parte del tiempo. 
+            # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
+            # en el tiempo total de ejecución.
+            # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
+            for ind, fitness in zip(eval_needed_individuals, results):
+                ind.fitness = float(fitness) if fitness is not None else float('inf')
+                key = safe_round_tuple(ind.decode())
+                self.cache[key] = ind.fitness
+        except Exception as e:
+            print(f"An error occurred during parallel evaluation: {e}")
+            for ind in eval_needed_individuals:
+                ind.fitness = float('inf')
+    """
     def _eval_single_wrapper(self, ind):
-        """Función de envoltura para _eval_single que permite su uso con multiprocessing.Pool."""
+        # Función de envoltura para _eval_single que permite su uso con multiprocessing.Pool.
         return self._eval_single(ind)
-
+    """
     def _select_parents(self):
         """Selecciona a los padres para la siguiente generación usando selección por torneo."""
         return self.tournament_selection(num_select=self.pop_size - self.elite_size)
-
-
+    
     def _create_offspring(self, parents):
         """Crea la descendencia a partir de los padres seleccionados."""
         offspring = []
@@ -320,15 +366,16 @@ class EGA:
     # --------------------------------
     # Métodos de evaluación de fitness
     # --------------------------------
+    """
     def _eval_single(self, individual: Individual):
-        """Evalúa a un único individuo, utilizando la caché y gestionando timeouts.
+        Evalúa a un único individuo, utilizando la caché y gestionando timeouts.
 
         Args:
             individual (Individual): El individuo a evaluar.
 
         Returns:
             float: El valor de fitness del individuo.
-        """
+        
         key = safe_round_tuple(individual.decode())
         if key in self.cache:
             return self.cache[key]
@@ -346,6 +393,7 @@ class EGA:
         # store in cache
         self.cache[key] = float(fitness)
         return float(fitness)
+    """	
 
     # ---------------------
     # Métodos de selección
