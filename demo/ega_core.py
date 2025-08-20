@@ -346,7 +346,7 @@ class EGA:
             parent2 = parents[i + 1]
 
             if random.random() < self.crossover_rate:
-                child_params = self._crossover(parent1.params, parent2.params)
+                child_params = blx_alpha_crossover(parent1.params, parent2.params, self.alpha_blx)
             else:
                 child_params = parent1.params.copy()
 
@@ -360,7 +360,8 @@ class EGA:
     def _apply_mutation(self, offspring):
         """Aplica mutación a la descendencia."""
         for child in offspring:
-            child.params = self._mutation(child.params)
+            child.params = gaussian_mutation(child.params, self.mutation_rate, self.mutation_scale, self.bounds)
+
 
 
     # --------------------------------
