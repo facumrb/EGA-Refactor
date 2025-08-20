@@ -50,19 +50,28 @@ def init_worker(seed_base: int):
     random.seed(s)
     _np.random.seed(s)
 
-def safe_round_tuple(arr, digits=6):
+def safe_round_tuple(individual_arr, digits=6):
     """
     Crea una clave única y utilizable para el diccionario de caché ( self.cache ). 
     Los diccionarios en Python necesitan que sus claves no puedan cambiar (sean inmutables). 
     Como los params de un individuo son np.ndarray y pueden cambiar, no se pueden usar directamente como clave. 
-    Esta función los convierte en una representación inmutable y estandarizada.
+    Esta función los convierte en una tupla, que es inmutable y puede ser usada como clave.
     """
-    return tuple([round(float(x), digits) for x in arr])
+    return tuple([round(float(gen), digits) for gen in individual_arr])
 
-def _eval_wrapper(args):
-    """Wrapper to call evaluator's evaluate method. Can be pickled."""
-    evaluator, params = args
-    return evaluator.evaluate(params)
+def _evaluator_wrapper(evaluator_and_individual):
+    """Envoltorio para llamar al método evaluate del evaluador. Puede ser serializado."""
+    # Desempaqueta los argumentos
+    evaluator, individual = evaluator_and_individual
+    # Llama al método evaluate del evaluador
+    return evaluator.evaluate(individual)
+
+# init_worker y _evaluator_wrapper son funciones auxiliares que se utilizan para 
+# inicializar los procesos hijos y evaluar los individuos en paralelo.
+# safe_round_tuple es una función auxiliar que se utiliza para convertir los params de un individuo en una tupla.
+# Esta tupla se usa como clave en el diccionario de caché.
+# El diccionario de caché se utiliza para almacenar los resultados de las evaluaciones previas,
+# lo que permite ahorrar tiempo en evaluaciones repetidas.
 
 # -----------------------
 # Clase Individual
@@ -300,6 +309,7 @@ class EGA:
         self.elite_size = int(config.get("elite_size", 3))
         self.alpha_blx = float(config.get("alpha_blx", 0.15))
         self.mutation_scale = np.array(config.get("mutation_scale", [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]), dtype=float)
+        self.tournament_k = int(config.get("tournament_k", 3))
         self.timeout = float(config.get("timeout", 20.0))
         self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
         self.seed = int(config.get("seed", 42))
@@ -336,43 +346,59 @@ class EGA:
 
         # Prepara una lista de individuos que necesitan evaluación y maneja la caché
         eval_needed_individuals = []
-        tasks = []
-        for ind in population_to_eval:
-            if ind.fitness is None:
-                key = safe_round_tuple(ind.decode())
-                if key in self.cache:
-                    ind.fitness = self.cache[key]
+        tasks_for_evaluator = []
+        for individual in population_to_eval:
+            """
+            Si un individuo ya tiene un valor de fitness (por ejemplo, porque es un "élite" 
+            de la generación anterior que se conservó), no hay nada que hacer y se salta al 
+            siguiente individuo del bucle.
+            """
+            if individual.fitness is None:
+                key_for_Dictionary = safe_round_tuple(individual.decode())
+                # Se genera una clave única para el genotipo del individuo.
+                if key_for_Dictionary in self.cache:
+                    individual.fitness = self.cache[key_for_Dictionary]
+                    """
+                    Si la clave existe, significa que este genotipo ya fue evaluado. Se recupera el 
+                    valor de fitness del caché y se le asigna al individuo actual, ahorrando una 
+                    evaluación completa.
+                    """
                 else:
-                    eval_needed_individuals.append(ind)
-                    tasks.append((self.evaluator, ind.decode()))
+                    eval_needed_individuals.append(individual)
+                    tasks_for_evaluator.append((self.evaluator, individual.decode()))
 
         if not eval_needed_individuals:
             return
         
         # Ejecuta las evaluaciones en paralelo usando el wrapper
         try:
-            results = self.pool.map(_eval_wrapper, tasks)
+            async_results = self.pool.map_async(_evaluator_wrapper, tasks_for_evaluator)
+            fitness_results = async_results.get(timeout=self.timeout)
             # Es un cuello de botella:
             # es donde el programa pasa la mayor parte del tiempo. 
             # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
             # en el tiempo total de ejecución.
             # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
-            for ind, fitness in zip(eval_needed_individuals, results):
-                ind.fitness = float(fitness) if fitness is not None else float('inf')
-                key = safe_round_tuple(ind.decode())
-                self.cache[key] = ind.fitness
+            for individual, fitness in zip(eval_needed_individuals, fitness_results):
+                individual.fitness = float(fitness) if fitness is not None else float('inf')
+                key_for_Dictionary = safe_round_tuple(individual.decode())
+                self.cache[key_for_Dictionary] = individual.fitness
         except Exception as e:
             print(f"An error occurred during parallel evaluation: {e}")
-            for ind in eval_needed_individuals:
-                ind.fitness = float('inf')
-    """
-    def _eval_single_wrapper(self, ind):
-        # Función de envoltura para _eval_single que permite su uso con multiprocessing.Pool.
-        return self._eval_single(ind)
-    """
-    def _select_parents(self):
-        """Selecciona a los padres para la siguiente generación usando selección por torneo."""
-        return self.tournament_selection(num_select=self.pop_size - self.elite_size)
+            for individual in eval_needed_individuals:
+                individual.fitness = float('inf')
+
+    def _select_parents(self, tournament_k):
+        """Selecciona a los padres para la siguiente generación usando selección por torneo.
+
+        Args:
+            tournament_k (int): Número de participantes en cada torneo.
+
+        Returns:
+            List[Individual]: La lista de individuos seleccionados.
+        """
+        return self.tournament_selection(tournament_k, num_select=self.pop_size - self.elite_size)
+
     
     def _create_offspring(self, parents):
         """Crea la descendencia a partir de los padres seleccionados."""
@@ -436,14 +462,14 @@ class EGA:
     # ---------------------
     # Métodos de selección
     # ---------------------
-    def tournament_selection(self, k=3, num_select=None):
+    def tournament_selection(self, tournament_k=3, num_select=None):
         """Realiza una selección por torneo.
 
         Para cada selección, se elige un grupo de 'k' individuos al azar y el que tiene
         el mejor fitness (el más bajo) es seleccionado.
 
         Args:
-            k (int): Número de participantes en cada torneo.
+            tournament_k (int): Número de participantes en cada torneo.
             num_select (int): Número total de individuos a seleccionar.
 
         Returns:
@@ -453,7 +479,7 @@ class EGA:
             num_select = self.pop_size
         selected = []
         for _ in range(num_select):
-            participants = random.sample(self.population, k)
+            participants = random.sample(self.population, tournament_k)
             winner = min(participants, key=lambda x: x.fitness)
             selected.append(winner)
         return selected
@@ -515,7 +541,7 @@ class EGA:
             elites = [ind.copy() for ind in self.population[:self.elite_size]]
 
             # 2. Selección de padres
-            parents = self._select_parents()
+            parents = self._select_parents(self.tournament_k)
 
             # 3. Creación de descendencia (cruzamiento)
             offspring = self._create_offspring(parents)

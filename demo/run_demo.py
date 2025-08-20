@@ -61,6 +61,7 @@ def main():
     # Instanciar el evaluador con los parámetros de la configuración
     evaluator = ToyODEEvaluator(
         target=np.array(config["target"], dtype=float),
+        bounds=np.array(config["bounds"], dtype=float),
         t_span=tuple(config["t_span"]),
         dt=config["dt"],
         noise_std=config["noise_std"]
