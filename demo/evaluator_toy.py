@@ -39,12 +39,11 @@ class ToyODEEvaluator:
 
         Args:
             target (np.ndarray, optional): El perfil de expresión objetivo que se quiere
-                                            alcanzar. Si no se especifica, se usa uno por
-                                            defecto. Defaults to None.
+            alcanzar. Si no se especifica, se usa uno por defecto. Defaults to None.
             t_span (tuple): El intervalo de tiempo para la simulación (t_inicial, t_final).
             dt (float): El paso de tiempo para la simulación.
             noise_std (float): La desviación estándar del ruido que se puede añadir a los
-                               datos simulados para hacer el modelo más realista.
+            datos simulados para hacer el modelo más realista. Defaults to 0.0.
         """
         # El vector de parámetros `params` que se espera tiene 9 valores:
         # 3 parámetros para cada uno de los 3 factores de transcripción (TF).

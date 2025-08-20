@@ -38,15 +38,30 @@ mutation_scale: [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]
 
 # Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
 bounds:
-  - [0.1, 3.0]
+  - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
   - [0.01, 1.0]
   - [-3.0, 3.0]
-  - [0.1, 3.0]
+  - [0.1, 3.0]    # Grupo 2: Parámetros cinéticos
   - [0.01, 1.0]
   - [-3.0, 3.0]
-  - [0.1, 3.0]
+  - [0.1, 3.0]    # Grupo 3: Parámetros metabólicos
   - [0.01, 1.0]
   - [-3.0, 3.0]
+# Parámetros fisiológicos :
+# [0.1, 3.0] → Posibles tasas metabólicas o concentraciones
+# [0.01, 1.0] → Constantes de afinidad/eficiencia enzimática
+# [-3.0, 3.0] → Factores regulatorios (activación/inhibición)
+# Propósito evolutivo :
+# Mantener soluciones dentro de rangos biológicamente factibles
+# Prevenir valores absurdos en parámetros bioquímicos
+# Simular restricciones reales de sistemas biológicos
+
+# Ejemplo: los primeros tres parámetros de cada grupo son iguales.
+# Implicación biológica: Esta simetría sugiere que el modelo considera:
+# - Tres componentes idénticos en el sistema
+# - Mecanismos regulatorios equivalentes entre subsistemas
+# - Condiciones homeostáticas equilibradas
+
 # Fundamental para reparación y validez biológica.
 # Es parte del diseño del evaluador y contexto del sistema biológico.
 

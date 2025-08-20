@@ -3,7 +3,7 @@ run_demo.py
 
 Este script es el punto de entrada para ejecutar una demostración del Algoritmo Genético Elitista (EGA).
 
-Carga la configuración desde un archivo YAML, inicializa el evaluador de juguete y el
+Carga la configuración desde un archivo YAML, inicializa el evaluador "de juguete" y el
 algoritmo genético, y luego ejecuta el proceso de optimización para encontrar los
 mejores parámetros para el modelo de juguete.
 
@@ -17,12 +17,12 @@ import numpy as np
 
 def load_config(path):
     """Carga un archivo de configuración en formato YAML."""
-    with open(path, "r") as fh:
-        cfg = yaml.safe_load(fh)
-    return cfg
-
+    with open(path, "r") as filehandler:
+        config = yaml.safe_load(filehandler)
+    return config
+"""
 def get_default_config():
-    """Retorna la configuración por defecto para la demostración."""
+    # Retorna la configuración por defecto para la demostración.
     default_bounds = [[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3
     return {
         # Parámetros del evaluador
@@ -46,7 +46,7 @@ def get_default_config():
         # Otros parámetros
         "snapshot_dir": "snapshots"
     }
-
+"""
 def main():
     """Función principal que ejecuta la demostración."""
     parser = argparse.ArgumentParser()
@@ -54,8 +54,9 @@ def main():
     args = parser.parse_args()
     
     # Cargar configuración desde el archivo y fusionarla con la configuración por defecto
-    user_cfg = load_config(args.config)
-    config = {**get_default_config(), **user_cfg}
+    user_config = load_config(args.config)
+    # config = {**get_default_config(), **user_config}
+    config = { **user_config }
 
     # Instanciar el evaluador con los parámetros de la configuración
     evaluator = ToyODEEvaluator(
@@ -66,7 +67,7 @@ def main():
     )
 
     # Configuración del EGA
-    ega_cfg = {
+    ega_config = {
         key: config[key] for key in [
             "populationSize", "generations", "crossover_rate", "mutation_rate", 
             "elite_size", "bounds", "alpha_blx", "mutation_scale", "timeout", 
@@ -74,10 +75,10 @@ def main():
         ]
     }
 
-    print("Configuración del EGA:", ega_cfg)
+    print("Configuración del EGA:", ega_config)
     
     # Crear y ejecutar el algoritmo genético
-    ega = EGA(ega_cfg, evaluator)
+    ega = EGA(ega_config, evaluator)
     res = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
     
     # Imprimir resultados

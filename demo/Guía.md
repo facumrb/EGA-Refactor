@@ -39,7 +39,7 @@ Nota: Al recorrer cada archivo, está la explicación de qué es y hace cada par
 El flujo de ejecución es el siguiente:
 
 1. 
-   Inicio: Un usuario ejecuta el comando `python run_demo.py` en la terminal, opcionalmente especificando un archivo de configuración.
+   Inicio: Un usuario ejecuta el comando `python run_demo.py --config config.yaml` en la terminal, opcionalmente especificando un archivo de configuración.
 
 2. 
    Configuración: run_demo.py lee el archivo `config.yaml` para cargar todos los parámetros.

@@ -6,16 +6,15 @@ Está diseñado para funcionar con individuos que son vectores de números reale
 la conexión ("plug-in") de diferentes funciones de evaluación.
 
 Características Principales:
-- **Individuo**: Representado como un vector de números reales, cada uno con sus propios límites (bounds).
-- **Selección**: Implementa la selección por torneo (por defecto) y también la selección por ruleta.
-- **Cruzamiento**: Utiliza el método BLX-alpha, adecuado para variables continuas (números reales).
-- **Mutación**: Aplica una mutación gaussiana adaptativa.
-- **Elitismo**: Conserva a los 'K' mejores individuos de una generación a la siguiente sin cambios.
-- **Evaluación Paralela**: Usa un "pool" de procesos para evaluar a los individuos simultáneamente, 
+- Individuo: Representado como un vector de números reales, cada uno con sus propios límites (bounds).
+- Selección: Implementa la selección por torneo (por defecto) y también la selección por ruleta.
+- Cruzamiento: Utiliza el método BLX-alpha, adecuado para variables continuas (números reales).
+- Mutación: Aplica una mutación gaussiana adaptativa.
+- Elitismo: Conserva a los 'K' mejores individuos de una generación a la siguiente sin cambios.
+- Evaluación Paralela: Usa un "pool" de procesos para evaluar a los individuos simultáneamente, 
   lo que acelera el cálculo. Incluye un tiempo máximo (timeout) por evaluación.
-- **Caché de Evaluaciones**: Almacena los resultados de evaluaciones ya realizadas para no repetir cálculos.
-- **Snapshots**: Guarda el estado del algoritmo (en formato JSON) en cada generación para poder 
-  analizar su progreso.
+- Caché de Evaluaciones: Almacena los resultados de evaluaciones ya realizadas para no repetir cálculos.
+- Snapshots: Guarda el estado del algoritmo (en formato JSON) en cada generación para poder analizar su progreso.
 """
 
 import json
@@ -27,6 +26,10 @@ import numpy as np
 from multiprocessing import Pool, cpu_count
 from functools import partial
 from typing import Callable, Dict
+
+STRATEGY = "uniform" # o "center"
+# - uniform : Simula variabilidad natural en parámetros bioquímicos
+# - center : Modela condiciones homeostáticas equilibradas
 
 # -----------------------
 # Utilidades / configuración
@@ -94,19 +97,46 @@ class Individual:
         bounds define el espacio de búsqueda de soluciones viables, es decir, las restricciones 
         físicas o biológicas de los parámetros del sistema.
         self.params es el genotipo del individuo, la secuencia específica de valores que lo define.
-        self.fitness es la aptitud biológica , una medida cuantitativa de cuán bien se adapta ese 
+        self.fitness es la aptitud biológica, una medida cuantitativa de cuán bien se adapta ese 
         genotipo al entorno (al problema a resolver).
         """
         
-        self.bounds = np.array(bounds, dtype=float) # Límites de los parámetros
+        self.bounds = np.array(bounds, dtype=float) 
+        # bounds : Representan límites fisiológicos
         self.num_params = self.bounds.shape[0] # Número de parámetros
 
+        # Inicialización aleatoria dentro de los límites fisiológicos
+        # self.bounds[:,1] selecciona la columna de límites superiores.
+        # self.bounds[:,0] selecciona la columna de límites inferiores.
         if init_strategy == "uniform":
             self.params = self.bounds[:,0] + np.random.rand(self.num_params) * (self.bounds[:,1] - self.bounds[:,0])
+            # La resta calcula el rango o la amplitud permitida para cada parámetro (ej., [max - min] ).
+            # np.random.rand(self.num_params) genera números aleatorios entre 0 y 1 para cada parámetro.
+            # Estos números aleatorios se multiplican por el rango y se suman al límite inferior para obtener
+            # un valor aleatorio dentro de los límites definidos para cada parámetro.
+            # Esto simula la variabilidad natural en la formación de genotipos
+            # Cada parámetro se inicializa con un valor aleatorio entre su límite mínimo y máximo.
+            """
+            En un sistema biológico real, los parámetros como las tasas de reacción enzimática o las concentraciones 
+            de proteínas no son idénticos en cada célula u organismo. Fluctúan dentro de un rango fisiológicamente viable. 
+            Al inicializar los parámetros de forma aleatoria dentro de sus bounds (límites), el algoritmo comienza 
+            explorando una solución que representa a un individuo aleatorio y viable de una población heterogénea.
+            """
         elif init_strategy == "center":
             self.params = (self.bounds[:,0] + self.bounds[:,1]) / 2.0
+            # Suma el límite inferior y superior de cada parámetro.
+            # Divide la suma por dos, calculando el punto medio exacto del rango permitido para cada parámetro.
+            # Esto asegura que la población se inicialice en un punto central válido dentro de los límites.
+            """
+            Esta estrategia representa un estado de homeostasis o equilibrio ideal. Inicializa el sistema en un estado 
+            promedio, sin sesgos ni variaciones aleatorias. Es útil cuando se quiere partir de una configuración 
+            teóricamente balanceada o cuando se sospecha que la solución óptima se encuentra cerca del centro del espacio 
+            de búsqueda. Simula un individuo "promedio" o arquetípico del sistema biológico que se está modelando.
+            """
         else:
             raise ValueError("Unknown init_strategy")
+        # fitness: Representa la aptitud biológica del individuo
+        # Inicialmente se establece en None, ya que el individuo no ha sido evaluado todavía.
         self.fitness = None
 
     def decode(self):
@@ -245,6 +275,7 @@ class EGA:
     selecciona a los padres, crea descendencia a través del cruzamiento y la mutación,
     y repite el proceso durante un número determinado de generaciones.
     """
+
     def __init__(self, config: Dict, evaluator):
         """
         Inicializa el algoritmo genético.
@@ -258,8 +289,6 @@ class EGA:
                        (donde un número más bajo es mejor).
         """
         self.config = config
-        random.seed(config.get("seed", 42))
-        np.random.seed(config.get("seed", 42))
         self.evaluator = evaluator
         self.bounds = np.array(config["bounds"], dtype=float)
         self.pop_size = int(config.get("populationSize", 30))
@@ -272,13 +301,19 @@ class EGA:
         self.timeout = float(config.get("timeout", 20.0))
         self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
         self.seed = int(config.get("seed", 42))
+        random.seed(self.seed)
+        np.random.seed(self.seed)
         self.cache = {}  # caching evaluations: key -> fitness
-        self.population = [Individual(self.bounds) for _ in range(self.pop_size)]
+        self.population = [Individual(self.bounds, STRATEGY) for _ in range(self.pop_size)]
+
         self.history = {"min": [], "avg": [], "gen_time": []}
         # Pool
         self.pool = Pool(processes=self.processes, initializer=init_worker, initargs=(self.seed,))
         # El sistema operativo lanza un número de procesos Python nuevos ( self.processes ). 
         # Cada uno de estos procesos es un "trabajador" casi idéntico al proceso principal.
+        # init_worker configura semillas aleatorias. initargs es una tupla con los argumentos
+        # que se pasarán a init_worker. En este caso, la semilla. La coma en (self.seed,) 
+        # es necesaria para crear tupla de un solo elemento.
 
     def _evaluate_population(self, population_to_eval=None):
         """
