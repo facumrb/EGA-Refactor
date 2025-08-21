@@ -567,14 +567,22 @@ class EGA:
             end = time.time()
             self.history["gen_time"].append(end - start)
 
+            
+            snapshot = {
+                "best_params": self.population[0].params.tolist(),
+            }
             # snapshot
             snapshot = {
-                "gen": gen,
-                "min": float(min([p.fitness for p in self.population])),
-                "avg": float(np.mean([p.fitness for p in self.population])),
-                "best_params": self.population[0].params.tolist(),
+                "generation": gen,
+                "timestamp": time.time(),
                 "seed": self.seed,
-                "config": self.config
+                "config": self.config,
+                "population_params": [individual.params.tolist() for individual in self.population],
+                "population_fitness": [float(individual.fitness) for individual in self.population],
+                # "population_outputs": [individual.output.tolist() if isinstance(individual.output, np.ndarray) else individual.output for individual in self.population],
+                "best_index": int(np.argmin([individual.fitness for individual in self.population])),
+                "min": float(min(individual.fitness for individual in self.population)),
+                "avg": float(np.mean([individual.fitness for individual in self.population]))
             }
             with open(os.path.join(snapshot_dir, f"snapshot_gen_{gen}.json"), "w") as fh:
                 json.dump(snapshot, fh, indent=2)
