@@ -56,7 +56,7 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                 ¿Por qué se tienen ciertos valores? ¿Cómo se relacionan? ¿En qué contexto biológico se determinan? Se recomienda buscar estudios con relación directa a la aplicación de nuestro proyecto.
                 En `demo\Estudios` dejo el avance que logré con respecto a la investigación, se puede tomar como base. Se recomienda leer los abstract y conclusion de cada estudio para minimizar el tiempo de análisis.
         4. En base a la información invetigada, seleccionar los estudios que mayor relevancia tienen e identificar sus partes para articularlas y así estructurar la teoría.
-                Nota: Los estudios seleccionados sí tienen que ser análizados más allá del abstract y conclusion para verificar que responder correctamente a nuestro proyecto.
+                Nota: Los estudios seleccionados sí tienen que ser analizados más allá del abstract y conclusion para verificar que responder correctamente a nuestro proyecto.
         5. Por último, la teoría es una recopilación de estudios que sustenta paso a paso el por qué de nuestro proyecto.
 
         Cómo recorrer el sistema:
