@@ -529,20 +529,23 @@ class EGA:
             dict: Un diccionario con los resultados finales del algoritmo.
         """
         os.makedirs(snapshot_dir, exist_ok=True)
-        # initial evaluation
+        # Evaluación inicial
         t0 = time.time()
+        # Carga en caché de los individuos y sus fitness en base a la primera población:
         self._evaluate_population(self.population)
+        # Guarda datos estadísticos en history:
+        self._record_stats()
         gen = 0
-        self._record_stats(gen)
+        # Muestra datos de la primera población:
         if verbose:
-            print(f"[Gen {gen}] min={min([p.fitness for p in self.population]):.6g}; avg={np.mean([p.fitness for p in self.population]):.6g}")
-
+            print(f"[Gen {gen}] min={min([individual.fitness for individual in self.population]):.6g}; avg={np.mean([individual.fitness for individual in self.population]):.6g}")
+        
         for gen in range(1, self.generations + 1):
             start = time.time()
 
             # 1. Elitismo: preservar los K mejores
             self.population.sort(key=lambda x: x.fitness)
-            elites = [ind.copy() for ind in self.population[:self.elite_size]]
+            elites = [individual.copy() for individual in self.population[:self.elite_size]]
 
             # 2. Selección de padres
             parents = self._select_parents(self.tournament_k)
@@ -560,7 +563,7 @@ class EGA:
             self.population = elites + offspring
 
             # record stats
-            self._record_stats(gen)
+            self._record_stats()
             end = time.time()
             self.history["gen_time"].append(end - start)
 
@@ -597,14 +600,14 @@ class EGA:
         self.pool.join()
         return final
 
-    def _record_stats(self, gen):
+    def _record_stats(self):
         """Registra las estadísticas de la población actual (fitness mínimo y promedio).
 
         Args:
             gen (int): El número de la generación actual.
         """
-        fits = np.array([ind.fitness for ind in self.population], dtype=float)
-        self.history["min"].append(float(np.min(fits)))
-        self.history["avg"].append(float(np.mean(fits)))
+        fitness = np.array([individual.fitness for individual in self.population], dtype=float)
+        self.history["min"].append(float(np.min(fitness)))
+        self.history["avg"].append(float(np.mean(fitness)))
 
 # EOF

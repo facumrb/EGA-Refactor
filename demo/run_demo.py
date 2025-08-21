@@ -80,12 +80,12 @@ def main():
     
     # Crear y ejecutar el algoritmo genético
     ega = EGA(ega_config, evaluator)
-    res = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
+    results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
     
     # Imprimir resultados
-    print("Mejor solución encontrada:", res["best"])
-    print("Tiempo total (s):", res["total_time_s"])
-
+    print("Mejor solución encontrada:", results["best"])
+    print("Tiempo total (s):", results["total_time_s"])
+    
 if __name__ == "__main__":
     # Punto de entrada del script.
     main()
