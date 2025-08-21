@@ -137,7 +137,7 @@ class ToyODEEvaluator:
 
     def _calculate_L2_distance(self, y_final):
         """Calcula la distancia euclidiana (linea recta L2) entre el resultado y el objetivo."""
-        return np.linalg.norm(y_final - self.target)
+        return np.linalg.norm(y_final - self.target) # Siempre es positivo
         # np.linalg.norm() calcula la norma (distancia) entre dos vectores.
 
     def _calculate_complexity_penalty(self, individual):
@@ -151,6 +151,7 @@ class ToyODEEvaluator:
         en el cálculo total del fitness.
         """
         return FITNESS_PENALTY_FACTOR * np.sum(np.abs(individual))
+        # El signo del número que retorna (+/-) es el mismo signo del FITNESS_PENALTY_FACTOR
 
     def _calculate_reached_reward(self, solution):
         """Otorga una recompensa si la simulación alcanza el objetivo tempranamente."""
@@ -194,6 +195,7 @@ class ToyODEEvaluator:
         Este código es un "parche" para evitar un fallo del EGA, añadiendo "genes" por defecto.
         """
         y_final, solution = self.simulate(individual)
+        # Estado final del sistema y el objeto de la solución
 
         if y_final is None:
             return float(FITNESS_FAILURE_VALUE)

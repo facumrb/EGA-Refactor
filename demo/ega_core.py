@@ -381,12 +381,16 @@ class EGA:
             # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
             for individual, fitness in zip(eval_needed_individuals, fitness_results):
                 individual.fitness = float(fitness) if fitness is not None else float('inf')
+                # Si el fitness es infinito, se asume que la evaluación falló.
+                # En este caso, se asigna un valor alto al fitness para que el individuo sea menos apto.
                 key_for_Dictionary = safe_round_tuple(individual.decode())
+                # Se genera una clave única para el genotipo del individuo.
                 self.cache[key_for_Dictionary] = individual.fitness
-        except Exception as e:
-            print(f"An error occurred during parallel evaluation: {e}")
+        except Exception as exception:
+            print(f"An error occurred during parallel evaluation: {exception}")
             for individual in eval_needed_individuals:
                 individual.fitness = float('inf')
+                # El error se "evita" asignando valores fitness que hacen a los individuos menos aptos. 
 
     def _select_parents(self, tournament_k):
         """Selecciona a los padres para la siguiente generación usando selección por torneo.
