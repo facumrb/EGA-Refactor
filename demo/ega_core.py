@@ -603,10 +603,6 @@ class EGA:
             end = time.time()
             self.history["gen_time"].append(end - start)
 
-            
-            snapshot = {
-                "best_params": self.population[0].params.tolist(),
-            }
             # snapshot
             snapshot = {
                 "generation": gen,

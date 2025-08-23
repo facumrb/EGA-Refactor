@@ -6,19 +6,19 @@
                                     v
                             [ config.yaml ]
                                     |
-    (2. Inicializa EGA y Evaluador) |
+                                    | (2. Inicializa EGA y Evaluador)
         ____________________________|_____________________________
         |                                                          |
         v                                                          v
 [ ega_core.py ] <--------- (4. Bucle Evolutivo) --------> [ evaluator_toy.py ]
-(El Optimizador)        (Evalúa cada individuo)          (El Sistema Biológico)
+(El Optimizador)         (Evalúa cada individuo)         (El Sistema Biológico)
         |                                                          |
         | (3. Propone soluciones)                                  | (5. Devuelve 'fitness')
         |__________________________________________________________|                             
                                     |
                                     | (6. Reporta resultado final)
                                     v
-                            [ consola/snapshots ]
+                          [ consola/snapshots ]
 
 Flujo de Datos:
 1. run_demo.py es el director de orquesta. Lee los parámetros desde config.yaml.
@@ -64,7 +64,19 @@ Tarea: recolectar los estudios que sustentan al proyecto.
         run_demo.py
                 + def main(): - Comienzo del sistema.
                         recorrer hasta ...
-                + config = { **user_config }
+                + user_config = load_config(args.config)
+                + def load_config(path):
+                        recorrer hasta ...
+                + return config
+                + default_config = get_default_config()
+                + def get_default_config():
+                        recorrer hasta ...
+                + "snapshot_dir": "snapshots"
+                + validate_config(user_config, default_config)
+                + def validate_config(user_config, default_config):
+                        recorrer hasta ...
+                + warnings.warn(f"Claves desconocidas en config.yaml: {unknown_keys}. Serán ignoradas.") 
+                + config = {**default_config, **user_config}
         config.yaml
                 recorrer completo para tener una visión general.
                 por el momento es necesario conocer los valores y qué son
@@ -82,9 +94,6 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                 + # Configuración del EGA
                         recorrer hasta ...
                 + ega = EGA(ega_config, evaluator)
-
-        RETOMAR DESDE ACÁ PORQUE HUBO CAMBIOS:
-
         ega_core.py
                 + class EGA:
                         recorre hasta ...

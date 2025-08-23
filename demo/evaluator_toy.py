@@ -51,6 +51,7 @@ class ToyODEEvaluator:
         self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
         self.min_production_rate = config["min_production_rate"]
         self.min_degradation_rate = config["min_degradation_rate"]
+        self.seed = config["seed"],
         self.target = np.array(config["target"], dtype=float) if config["target"] is not None else DEFAULT_TARGET
         self.bounds = np.array(config["bounds"], dtype=float) if config["bounds"] is not None else DEFAULT_BOUNDS
 
@@ -178,6 +179,7 @@ class ToyODEEvaluator:
             # Los experimentos biológicos reales no son perfectos. Esta línea añade un poco de
             # aleatoriedad (ruido gaussiano) al resultado final para que la simulación sea más realista.
             if self.noise_std > 0:
+                np.random.seed(self.seed) # Semilla fija para reproducibilidad del ruido
                 y_final = y_final + np.random.normal(0, self.noise_std, size=y_final.shape)
             # 5. Devolver el resultado exitoso.
             # Se devuelve tanto el estado final como el objeto 'solution' completo, por si se necesita más adelante.

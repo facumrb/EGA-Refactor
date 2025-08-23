@@ -11,6 +11,7 @@ Uso:
     python run_demo.py --config config.yaml
 """
 import yaml, argparse, os
+import warnings
 from ega_core import EGA
 from evaluator_toy import ToyODEEvaluator
 import numpy as np
@@ -44,9 +45,28 @@ def get_default_config():
         "seed": 42,
         "tournament_k": 3,
         "fitness_penalty_factor": 0.001,
+        "initial_conditions": [0.1, 0.1, 0.1],
+        "min_production_rate": 1e-6, 
+        "min_degradation_rate": 1e-3,
         # Otros parámetros
         "snapshot_dir": "snapshots"
     }
+
+def validate_config(user_config, default_config):
+    """Valida las claves en la configuración del usuario."""
+    expected_keys = set(default_config.keys())
+    user_keys = set(user_config.keys())
+    
+    # Chequeo de claves requeridas
+    required_keys = expected_keys  # Asumimos todas son requeridas; ajusta si es necesario
+    missing_keys = required_keys - user_keys
+    if missing_keys:
+        raise ValueError(f"Claves requeridas faltantes en config.yaml: {missing_keys}")
+    
+    # Alerta de claves desconocidas
+    unknown_keys = user_keys - expected_keys
+    if unknown_keys:
+        warnings.warn(f"Claves desconocidas en config.yaml: {unknown_keys}. Serán ignoradas.")
 
 def main():
     """Función principal que ejecuta la demostración."""
@@ -56,15 +76,16 @@ def main():
     
     # Cargar configuración desde el archivo y fusionarla con la configuración por defecto
     user_config = load_config(args.config)
-    config = {**get_default_config(), **user_config}
-    config = { **user_config }
+    default_config = get_default_config()
+    validate_config(user_config, default_config)
+    config = {**default_config, **user_config}
 
     # Parámetros del evaluador
     evaluator_config = {
         key: config[key] for key in [
             "target", "bounds", "t_span", "dt", "noise_std", 
             "fitness_penalty_factor", "initial_conditions",
-            "min_production_rate", "max_degradation_rate"
+            "min_production_rate", "min_degradation_rate", "seed"
         ]
     }
 
