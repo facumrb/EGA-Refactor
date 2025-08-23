@@ -115,10 +115,36 @@ snapshot_dir: "snapshots"
 tournament_k: 3 # Valor sugerido: 3
 # Controla presión selectiva. Mayor k aumenta presión selectiva, pero puede reducir diversidad.
 
+# Estrategia de inicialización de la población.
+strategy: "uniform" # o "center"
+# - uniform : Simula variabilidad natural en parámetros bioquímicos
+# - center : Modela condiciones homeostáticas equilibradas
+
 # Todos los valores están razonados: 
-#balancean exploración, plausibility biológica y coste computacional.
+# balancean exploración, plausibility biológica y coste computacional.
 # Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
 # usadas en otros problemas paramétricos.
+
+fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
+# Penalización por complejidad : Esta constante, FITNESS_PENALTY_FACTOR, se utiliza para multiplicar 
+# la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
+# al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
+# complejas) cuando es posible.
+
+# Opción futura para la definición de FITNESS_PENALTY_FACTOR: Autoadaptación (Self-Adaptation)
+#Este es el enfoque más avanzado y biológicamente inspirado de todos. 
+# En lugar de tener una regla externa que dicte el valor del factor de penalización, 
+# el propio valor se codifica en el genoma de cada individuo.
+# ¿Cómo funciona?:
+# 1. Cada individuo en la población ya no tendría 9 parámetros, sino 10.
+# 2. Los primeros 9 serían los parámetros del modelo, como ahora.
+# 3. El décimo parámetro sería el fitness_penalty_factor personal de ese individuo.
+# 4. Este décimo parámetro también estaría sujeto a mutación y cruce.
+# Ventajas: El algoritmo evolutivo aprende simultáneamente la solución al problema y el mejor 
+# valor de fitness_penalty_factor para ese problema. Es el sistema más flexible y potente.
+# Desventajas: Muy complejo de implementar correctamente. Puede hacer que la convergencia sea 
+# más lenta o inestable si no se diseña con cuidado.
+
 
 # Parámetros ajustados para 1 hora y 20 minutos
 # populationSize: 50

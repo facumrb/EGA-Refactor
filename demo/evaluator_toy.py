@@ -42,13 +42,6 @@ INITIAL_CONDITIONS = np.array([0.1, 0.1, 0.1])
 
 
 # --- Parámetros de la función de fitness ---
-FITNESS_PENALTY_FACTOR = 0.001  # Factor para la penalización por complejidad
-# Penalización por complejidad : Esta constante, FITNESS_PENALTY_FACTOR, se utiliza para multiplicar 
-# la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
-# al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
-# complejas) cuando es posible.
-# La mejor aproximación es experimentar. Ejecutar el algoritmo con diferentes valores del factor de 
-# penalización y analizar los resultados.
 
 FITNESS_FAILURE_VALUE = 1e9       # Valor de fitness si la simulación falla
 REWARD_TOLERANCE = 0.1            # Tolerancia para la recompensa por alcanzar el objetivo
@@ -62,7 +55,8 @@ class ToyODEEvaluator:
     descrito por las EDOs y lo compara con un resultado deseado para calcular
     un valor de 'fitness' o 'aptitud'.
     """
-    def __init__(self, target=None, bounds=None, t_span=(0, 50), dt=0.5, noise_std=0.0):
+    def __init__(self, target=None, bounds=None, t_span=(0, 50), dt=0.5, noise_std=0.0, fitness_penalty_factor=0.001):
+
         """Inicializa el evaluador.
 
         Args:
@@ -74,10 +68,12 @@ class ToyODEEvaluator:
             dt (float): El paso de tiempo para la simulación.
             noise_std (float): La desviación estándar del ruido que se puede añadir a los
             datos simulados para hacer el modelo más realista. Defaults to 0.0.
+            fitness_penalty_factor (float): Factor para penalizar la complejidad en la función de fitness.
         """
         self.t_span = t_span
         self.dt = dt
         self.noise_std = noise_std
+        self.fitness_penalty_factor = fitness_penalty_factor
         self.target = np.array(target, dtype=float) if target is not None else DEFAULT_TARGET
         self.bounds = np.array(bounds, dtype=float) if bounds is not None else DEFAULT_BOUNDS
 
@@ -146,12 +142,13 @@ class ToyODEEvaluator:
         No nos interesa si una interacción es inhibidora (negativa) o activadora (positiva), solo su magnitud o "fuerza".
         Se suma todos los valores absolutos calculados en el paso anterior. El resultado es un único número que 
         representa la "magnitud total" de todos los parámetros del individuo.
-        Finalmente, multiplica esa suma por la constante FITNESS_PENALTY_FACTOR. 
-        FITNESS_PENALTY_FACTOR actúa como un peso: decide cuánta importancia se le da a esta penalización de complejidad 
+        Finalmente, multiplica esa suma por la constante fitness_penalty_factor. 
+        fitness_penalty_factor actúa como un peso: decide cuánta importancia se le da a esta penalización de complejidad 
         en el cálculo total del fitness.
         """
-        return FITNESS_PENALTY_FACTOR * np.sum(np.abs(individual))
-        # El signo del número que retorna (+/-) es el mismo signo del FITNESS_PENALTY_FACTOR
+        return self.fitness_penalty_factor * np.sum(np.abs(individual))
+
+        # El signo del número que retorna (+/-) es el mismo signo del fitness_penalty_factor
 
     def _calculate_reached_reward(self, solution):
         """Otorga una recompensa si la simulación alcanza el objetivo tempranamente."""
@@ -161,7 +158,7 @@ class ToyODEEvaluator:
                     return REACHED_REWARD_VALUE  # Recompensa que reduce el fitness
         return 0.0
 
-    def evaluate(self, individual, timeout=None):
+    def evaluate(self, individual):
         """Evalúa un individuo y retorna un valor de fitness escalar.
 
         El fitness combina tres componentes:
@@ -173,7 +170,6 @@ class ToyODEEvaluator:
 
         Args:
             individual (np.ndarray): Vector de parámetros a evaluar.
-            timeout (any, optional): No implementado en esta versión. Defaults to None.
 
         Returns:
             float: El valor de fitness (un número más pequeño es mejor).

@@ -62,7 +62,7 @@ Tarea: recolectar los estudios que sustentan al proyecto.
         Cómo recorrer el sistema:
         run_demo.py
                 + def main(): - Comienzo del sistema.
-                        recorrer función hasta
+                        recorrer hasta ...
                 + config = { **user_config }
         config.yaml
                 recorrer completo para tener una visión general.
@@ -70,27 +70,26 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                 pero al momento de ser usados debe investigarse la teoría
         run_demo.py
                 + evaluator = ToyODEEvaluator
-                        recorrer instanciación hasta
-                + noise_std=config["noise_std"]
+                        recorrer hasta ...
+                + fitness_penalty_factor=config["fitness_penalty_factor"]
         evaluator_toy.py
                 + class ToyODEEvaluator:
-                        recorrer clase hasta
+                        recorrer hasta ...
                 + self.bounds = np.array(bounds, dtype=float) if bounds is not None else DEFAULT_BOUNDS
                         (prestar atención a los valores de las constantes y el uso en config.yaml para investigar)
         run_demo.py
                 + ega_config = 
-                        recorrer código hasta
+                        recorrer hasta ...
                 + ega = EGA(ega_config, evaluator)
+
+        RETOMAR PORQUE HUBO CAMBIOS:
+
         ega_core.py
                 + class EGA
-                        recorre hasta
-                + self.pool = Pool(processes=self.processes, initializer=init_worker, initargs=(self.seed,))
-                        (prestar atención a los valores de las constantes y el uso en config.yaml para investigar)
-                + def init_worker(seed_base: int):
-                        recorrer hasta
-                + _np.random.seed(s)
+                        recorre hasta ...
+                + self.history = {"min": [], "avg": [], "gen_time": []}
         run_demo.py
-                + res = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
+                + results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
         ega_core.py
                 + run(self, snapshot_dir="snapshots", verbose=True)
                         recorrer hasta
@@ -101,9 +100,25 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                 + def decode(self):
                         recorrer hasta
                 + return np.clip(self.params, self.bounds[:,0], self.bounds[:,1])
+                + key_for_Dictionary = safe_round_tuple(individual.decode())
                 + def safe_round_tuple(individual_arr, digits=6):
                         recorrer hasta
                 + return tuple([round(float(gen), digits) for gen in individual_arr])
                 + if key_for_Dictionary in self.cache:
                         recorrer hasta ...
-        INFORMAR LLEGADA PORQUE YA ES ZONA DE REVISIÓN DE CÓDIGO. NO SEGUIR INVESTIGANDO.
+                + with pebble.ProcessPool(max_workers=self.processes, initializer=init_worker, initargs=(self.seed,)) as pool:
+                + def init_worker(seed_base: int):
+                        recorrer hasta ...
+                + _np.random.seed(s)
+                + with pebble.ProcessPool(max_workers=self.processes, initializer=init_worker, initargs=(self.seed,)) as pool:
+                        recorrer hasta ...
+                + future = pool.map(_evaluator_wrapper, tasks_for_evaluator, timeout=self.timeout)
+                + def _evaluator_wrapper(evaluator_and_individual):
+                        recorrer hasta ...
+                + return evaluator.evaluate(individual)
+        evaluator_toy.py
+                + def evaluate(self, individual):
+                        recorrer hasta ...
+                + y_final, solution = self.simulate(individual)
+                + def simulate(self, individual):
+        INFORMAR LLEGADA PORQUE YA ES ZONA DE REVISIÓN DE CÓDIGO. NO SEGUIR INVESTIGANDO.        
