@@ -56,19 +56,20 @@ def main():
     
     # Cargar configuración desde el archivo y fusionarla con la configuración por defecto
     user_config = load_config(args.config)
-    # config = {**get_default_config(), **user_config}
+    config = {**get_default_config(), **user_config}
     config = { **user_config }
 
+    # Parámetros del evaluador
+    evaluator_config = {
+        key: config[key] for key in [
+            "target", "bounds", "t_span", "dt", "noise_std", 
+            "fitness_penalty_factor", "initial_conditions",
+            "min_production_rate", "max_degradation_rate"
+        ]
+    }
+
     # Instanciar el evaluador con los parámetros de la configuración
-    evaluator = ToyODEEvaluator(
-        target=np.array(config["target"], dtype=float),
-        bounds=np.array(config["bounds"], dtype=float),
-        t_span=tuple(config["t_span"]),
-        dt=config["dt"],
-        noise_std=config["noise_std"],
-        fitness_penalty_factor=config["fitness_penalty_factor"],
-        initial_conditions=np.array(config["initial_conditions"], dtype=float)
-    )
+    evaluator = ToyODEEvaluator(evaluator_config)
 
     # Configuración del EGA
     ega_config = {

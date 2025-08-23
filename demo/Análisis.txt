@@ -124,4 +124,24 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                 + def simulate(self, individual):
                         recorrer hasta ...
                 + solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6)
+                + def _ode_system(self, t, y, individual_params):
+                        recorrer hasta ...
+                + return dydt
+                + # 3. Extraer el estado final del sistema.
+                        recorrer hasta ...
+                + raise ValueError(f"Simulación fallida para individuo: {error}")
+                + if y_final is None:
+                        recorrer hasta ...
+                + L2_distance = self._calculate_L2_distance(y_final)
+                + def _calculate_L2_distance(self, y_final):
+                        recorrer hasta
+                + return np.linalg.norm(y_final - self.target) # Siempre es positivo
+                + complexity_penalty = self._calculate_complexity_penalty(individual)
+                + def _calculate_complexity_penalty(self, individual):
+                        recorrer hasta ...
+                + return self.fitness_penalty_factor * np.sum(np.abs(individual))
+                + reached_reward = self._calculate_reached_reward(solution)
+                        recorrer hasta ...
+                + 
+
         INFORMAR LLEGADA PORQUE YA ES ZONA DE REVISIÓN DE CÓDIGO. NO SEGUIR INVESTIGANDO.        
