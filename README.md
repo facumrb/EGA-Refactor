@@ -6,7 +6,7 @@ El proyecto se centra en un problema de optimización de sistemas de ecuaciones 
 
 ## Guía de Uso
 
-Se recomienda usar un anotador para no perder el flujo de trabajo al seguir la Lectura Inicial de la `Guía.md`, la Profundización con la `Teoría.md`y la Vuelta a la `Guía.md`.
+Se recomienda usar un anotador para no perder el flujo de trabajo al seguir la Lectura Inicial de la `Guía.md`, la Profundización con la `Teoría.md` y la Vuelta a la `Guía.md`.
 Para explorar y ejecutar este proyecto, por favor, seguí los siguientes pasos en orden.
 
 1.  **Clonar el repositorio:** Comenzá clonando este repositorio en tu máquina local. Podes hacerlo usando `git clone` en la terminal:
@@ -54,16 +54,19 @@ Una vez que guiado por `Guía.md`, sumergite en `Teoría.md`. Este archivo expli
 
 Con el conocimiento teórico fresco, volvés a donde quedaste en la `Guía.md`. La continuación de la lectura permite conectar la teoría con la práctica: cómo se interconectan los archivos y cómo ejecutar el programa. Se comprende mejor el propósito de cada componente del código y cómo contribuyen al resultado final.
 
-### 6. Tarea Pendiente: Revisión y Solución de Problemas
+### 6. Revisión e Investigación de los estudios que sustentan el proyecto
 
-El código ha sido extensamente comentado en español para facilitar su comprensión. Sin embargo, como parte del proceso de desarrollo y aprendizaje, **existen problemas en el código que deben ser solucionados**.
+El código ha sido extensamente documentado en español para facilitar su comprensión. Sin embargo, como parte del proceso de desarrollo e investigación, **es necesario realizar una revisión exhaustiva de los estudios y fundamentos teóricos que respaldan este proyecto**.
 
-La tarea es:
-1.  **Revisar los archivos `.py`**: `run_demo.py`, `ega_core.py` y `evaluator_toy.py`. ADVERTENCIA: NO MODIFICAR `config.yaml`.
+La tarea consiste en:
+1. **Examinar la literatura científica**: Recopilar y analizar publicaciones relevantes sobre algoritmos genéticos elitistas y redes de regulación génica.
 
-2.  **Leer los comentarios**: Dan pistas sobre la intención de cada bloque de código.
-3.  **Ejecutar el programa y analizar los errores**: Identificá los fallos que impiden que el programa se ejecute correctamente.
-4.  **Proponer e implementar soluciones**: Creá una rama (dev branch) para solucionar los errores y mejorar el código.
-5.  **Prueba y validación**: Ejecutá el programa en la rama dev para verificar que los cambios solucionaron los problemas.
+2. **Documentar hallazgos**: Crear un registro detallado de los estudios más significativos y sus conclusiones principales.
 
-6.  **Comunicá tus cambios**: Si todo funciona como esperado, nos comunicamos para fusionar la rama dev en la rama principal (main branch) y seguimos con futuros objetivos.
+3. **Validar fundamentos teóricos**: Verificar que los principios implementados en el código estén respaldados por evidencia científica sólida.
+
+4. **Identificar áreas de mejora**: Basándose en la literatura, señalar aspectos del algoritmo que podrían optimizarse.
+
+5. **Proponer actualizaciones**: Desarrollar recomendaciones fundamentadas para mejorar el algoritmo según los hallazgos de la investigación.
+
+6. **Compartir resultados**: Preparar un informe detallado con los descubrimientos y sugerencias para discusión con el equipo.
