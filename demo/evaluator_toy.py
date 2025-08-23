@@ -19,26 +19,6 @@ DEFAULT_BOUNDS = np.array([[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3)
 # --- Parámetros de la simulación ---
 MIN_PRODUCTION_RATE = 1e-6
 MIN_DEGRADATION_RATE = 1e-3
-INITIAL_CONDITIONS = np.array([0.1, 0.1, 0.1])
-# Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
-# del vector representa una concentración inicial, baja pero no nula, de los tres 
-# factores de transcripción (o proteínas) en el modelo. Biológicamente, es muy 
-# raro que la concentración de una proteína sea absolutamente cero. Las células 
-# suelen tener un nivel de "fugas" o expresión basal de muchos genes.
-# Punto de Partida para la Reprogramación : En el contexto de la reprogramación 
-# celular (que es lo que este modelo simula de forma abstracta), estas condiciones 
-# iniciales representan el estado de una célula antes de que se aplique cualquier 
-# estímulo. El objetivo del algoritmo genético es encontrar los parámetros 
-# (las "reglas" de interacción genética) que, partiendo de este estado basal, lleven 
-# a la célula a un estado final deseado (el target ).
-# Evitar Singularidades Matemáticas : Desde un punto de vista computacional, empezar 
-# con concentraciones exactamente en cero puede, en algunos modelos, llevar a resultados 
-# triviales (si no hay nada, nada cambia) o a inestabilidades numéricas en el solver 
-# de las ecuaciones diferenciales. Empezar con un valor pequeño y positivo asegura que 
-# el sistema pueda "arrancar" y evolucionar.
-# En resumen, [0.1, 0.1, 0.1] es una suposición plausible para un estado celular no 
-# estimulado, donde los factores de interés están presentes en pequeñas cantidades, 
-# pero están listos para responder a las interacciones que el algoritmo genético descubrirá.
 
 
 # --- Parámetros de la función de fitness ---
@@ -55,7 +35,7 @@ class ToyODEEvaluator:
     descrito por las EDOs y lo compara con un resultado deseado para calcular
     un valor de 'fitness' o 'aptitud'.
     """
-    def __init__(self, target=None, bounds=None, t_span=(0, 50), dt=0.5, noise_std=0.0, fitness_penalty_factor=0.001):
+    def __init__(self, target=None, bounds=None, t_span=(0, 50), dt=0.5, noise_std=0.0, fitness_penalty_factor=0.001, initial_conditions=None):
 
         """Inicializa el evaluador.
 
@@ -74,6 +54,7 @@ class ToyODEEvaluator:
         self.dt = dt
         self.noise_std = noise_std
         self.fitness_penalty_factor = fitness_penalty_factor
+        self.initial_conditions = np.array(initial_conditions, dtype=float)
         self.target = np.array(target, dtype=float) if target is not None else DEFAULT_TARGET
         self.bounds = np.array(bounds, dtype=float) if bounds is not None else DEFAULT_BOUNDS
 
@@ -115,20 +96,52 @@ class ToyODEEvaluator:
             tuple: Una tupla conteniendo el estado final del sistema (y_final) y el objeto
                    de la solución completa de la simulación. Si falla, retorna (None, None).
         """
-        y0 = INITIAL_CONDITIONS
         t0, tf = self.t_span
         t_eval = np.arange(t0, tf + self.dt, self.dt) # np.arange(inicio, fin, paso) son los puntos temporales
+        # 1. Iniciar un bloque de manejo de errores.
+        # La simulación numérica a veces puede fallar (por ejemplo, si los parámetros del individuo
+        # crean un sistema inestable), y este 'try' nos permite capturar esos fallos sin que el programa se detenga.
         try:
-            # Se resuelve el sistema de EDOs.
+            # 2. Llamar al solucionador de EDOs (un Problema de Valor Inicial). 
+            # Las EDOs son perfectas para describir cómo las concentraciones de proteínas (y) cambian con el tiempo (t), es decir, dy/dt = f(t, y).
+            # La función lambda le dice a solve_ivp cómo cambian las concentraciones de proteínas en cada instante.
+            # "lambda t, y: self._ode_system(t, y, individual)" es una forma corta de definir una función. 
+            # Llama a self._ode_system, pasándole el tiempo actual t, las concentracions actuales y, y los parámetros del individuo ( individual ) 
+            # que el algoritmo genético está probando. 
+            # _ode_system devuelve la tasa de cambio ( dy/dt ) para cada proteína.
             solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual),
-                            t_span=(t0, tf), y0=y0, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6)
+                            t_span=self.t_span, y0=self.initial_conditions, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6)
+            # t_span es el intervalo de tiempo (t0, tf) en el que se integra.
+            # y0 son las condiciones iniciales (concentraciones iniciales de proteínas).
+            # t_eval es la lista de tiempos en los que se desea obtener la solución.
+            # vectorized=False indica que la función _ode_system no está vectorizada.
+            # rtol es la tolerancia relativa para la integración.
+            # atol es la tolerancia absoluta para la integración.
+            # solve_ivp no devuelve un objeto que contiene toda la información sobre la simulación.
+            # Los atributos más importantes de este objeto solution son:
+            # solution.t: Un array con los tiempos en los que se evaluó la solución. Coincide con t_eval.
+            # solution.y: El resultado principal: es una matriz con las concentraciones de proteínas en cada tiempo.
+            # Cada fila de solution.y corresponde a una proteína, y cada columna a un tiempo.
+            # solution.y.shape es (3, 101), donde 3 es el número de proteínas y 101 es el número de tiempos.
+            
+            # 3. Extraer el estado final del sistema.
+            # solution.y es la matriz de resultados. [:, -1] es una forma de seleccionar
+            # de todas las filas (:) la última columna (-1). 
+            # Esto nos da un array con la concentración de cada proteína en el tiempo final 'tf'.
             y_final = solution.y[:, -1]
-            # Opcionalmente, se añade ruido para simular variabilidad experimental.
+            # 4. (Opcional) Simular ruido experimental.
+            # Los experimentos biológicos reales no son perfectos. Esta línea añade un poco de
+            # aleatoriedad (ruido gaussiano) al resultado final para que la simulación sea más realista.
             if self.noise_std > 0:
                 y_final = y_final + np.random.normal(0, self.noise_std, size=y_final.shape)
+            # 5. Devolver el resultado exitoso.
+            # Se devuelve tanto el estado final como el objeto 'solution' completo, por si se necesita más adelante.
             return y_final, solution
-        except Exception as e:
-            # Si la integración numérica falla, se retorna un resultado que indica el fallo.
+        # 6. Capturar cualquier error que haya ocurrido durante el 'try'.
+        except Exception:
+            # 7. Si la simulación falló, se informa y se devuelve un resultado que indica el fallo ('None').
+            # Esto es crucial para que el algoritmo genético sepa que el individuo que causó el error
+            # no es una solución viable y le asigne un fitness muy malo.
             return None, None
 
     def _calculate_L2_distance(self, y_final):

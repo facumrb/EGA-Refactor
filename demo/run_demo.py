@@ -66,7 +66,8 @@ def main():
         t_span=tuple(config["t_span"]),
         dt=config["dt"],
         noise_std=config["noise_std"],
-        fitness_penalty_factor=config["fitness_penalty_factor"]
+        fitness_penalty_factor=config["fitness_penalty_factor"],
+        initial_conditions=np.array(config["initial_conditions"], dtype=float)
     )
 
     # Configuración del EGA

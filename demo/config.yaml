@@ -120,6 +120,27 @@ strategy: "uniform" # o "center"
 # - uniform : Simula variabilidad natural en parámetros bioquímicos
 # - center : Modela condiciones homeostáticas equilibradas
 
+initial_conditions = np.array([0.1, 0.1, 0.1])
+# Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
+# del vector representa una concentración inicial, baja pero no nula, de los tres 
+# factores de transcripción (o proteínas) en el modelo. Biológicamente, es muy 
+# raro que la concentración de una proteína sea absolutamente cero. Las células 
+# suelen tener un nivel de "fugas" o expresión basal de muchos genes.
+# Punto de Partida para la Reprogramación : En el contexto de la reprogramación 
+# celular (que es lo que este modelo simula de forma abstracta), estas condiciones 
+# iniciales representan el estado de una célula antes de que se aplique cualquier 
+# estímulo. El objetivo del algoritmo genético es encontrar los parámetros 
+# (las "reglas" de interacción genética) que, partiendo de este estado basal, lleven 
+# a la célula a un estado final deseado (el target ).
+# Evitar Singularidades Matemáticas : Desde un punto de vista computacional, empezar 
+# con concentraciones exactamente en cero puede, en algunos modelos, llevar a resultados 
+# triviales (si no hay nada, nada cambia) o a inestabilidades numéricas en el solver 
+# de las ecuaciones diferenciales. Empezar con un valor pequeño y positivo asegura que 
+# el sistema pueda "arrancar" y evolucionar.
+# En resumen, [0.1, 0.1, 0.1] es una suposición plausible para un estado celular no 
+# estimulado, donde los factores de interés están presentes en pequeñas cantidades, 
+# pero están listos para responder a las interacciones que el algoritmo genético descubrirá.
+
 # Todos los valores están razonados: 
 # balancean exploración, plausibility biológica y coste computacional.
 # Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 

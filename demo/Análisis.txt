@@ -42,7 +42,7 @@ Esta separación permite, por ejemplo, cambiar el modelo biológico por uno comp
 
 3. Puntos Clave de Interpretación
 - Abstracción : El EGA trata a cada individuo como una "caja negra". Solo le interesan los parámetros que entran y el fitness que sale. La complejidad biológica está encapsulada en el evaluador.
-- Costo Computacional : El cuello de botella de todo el pipeline es casi siempre la función evaluate en el evaluador. Resolver sistemas de EDOs es costoso, y el EGA necesita hacerlo miles de veces. Por eso, la implementación usa multiprocessing para paralelizar este paso.
+- Costo Computacional : El cuello de botella de todo el pipeline es casi siempre la función evaluate en el evaluador. Resolver sistemas de EDOs es costoso, y el EGA necesita hacerlo miles de veces. Por eso, la implementación usa pebble para paralelizar este paso.
 - Parámetros Críticos : Los parámetros en config.yaml no son triviales. Definen tanto el comportamiento del algoritmo de búsqueda (ej. populationSize , mutation_rate ) como la propia definición del problema biológico (ej. target , t_span ). Un mal ajuste aquí puede llevar a que el algoritmo nunca encuentre una buena solución o tarde demasiado.
 
 Leer todo a continuación antes de empezar:
@@ -59,6 +59,7 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                 Nota: Los estudios seleccionados sí tienen que ser analizados más allá del abstract y conclusion para verificar que responder correctamente a nuestro proyecto.
         5. Por último, la teoría es una recopilación de estudios que sustenta paso a paso el por qué de nuestro proyecto.
 
+        Atención.. se debe hacer investigación en cómo se define cada constante del código.
         Cómo recorrer el sistema:
         run_demo.py
                 + def main(): - Comienzo del sistema.
@@ -82,7 +83,7 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                         recorrer hasta ...
                 + ega = EGA(ega_config, evaluator)
 
-        RETOMAR PORQUE HUBO CAMBIOS:
+        RETOMAR DESDE ACÁ PORQUE HUBO CAMBIOS:
 
         ega_core.py
                 + class EGA
@@ -121,4 +122,6 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                         recorrer hasta ...
                 + y_final, solution = self.simulate(individual)
                 + def simulate(self, individual):
+                        recorrer hasta ...
+                + solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6)
         INFORMAR LLEGADA PORQUE YA ES ZONA DE REVISIÓN DE CÓDIGO. NO SEGUIR INVESTIGANDO.        
