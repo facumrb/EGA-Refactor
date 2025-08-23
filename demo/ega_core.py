@@ -165,10 +165,10 @@ class Individual:
         Crea una instancia completamente nueva de la clase Individual.
         Esto es útil cuando se quiere modificar un individuo sin afectar al original.
         """
-        ind = Individual(self.bounds)
-        ind.params = np.array(self.params, copy=True)
-        ind.fitness = self.fitness
-        return ind
+        individual_copy = Individual(self.bounds)
+        individual_copy.params = np.array(self.params, copy=True)
+        individual_copy.fitness = self.fitness
+        return individual_copy
 
 # -----------------------
 # Operadores
@@ -212,7 +212,7 @@ def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, blx_alpha=0.3,
         sample_max = parent_max + blx_alpha * parent_range
         """
         El parámetro BLX-alpha controla cuánto se permite extrapolar 
-        fuera del rango parental (transgresión).
+        fuera del rango parental (biología: transgresión).
         """
         # Respect global bounds if provided
         if bounds is not None:
@@ -236,7 +236,7 @@ def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, blx_alpha=0.3,
         """
     return child
 
-def gaussian_mutation(params: np.ndarray, mutation_rate: float, mutation_scale: np.ndarray, bounds=None):
+def gaussian_mutation(individual_params: np.ndarray, mutation_rate: float, mutation_scale: np.ndarray, bounds=None):
     """Aplica una mutación gaussiana a un vector de parámetros.
     
     Para cada parámetro (gen), hay una probabilidad ('mutation_rate') de que mute. 
@@ -252,27 +252,31 @@ def gaussian_mutation(params: np.ndarray, mutation_rate: float, mutation_scale: 
     Returns:
         np.ndarray: El vector de parámetros mutado.
     """
-    n = len(params)
-    for i in range(n):
+    elements_num = len(individual_params)
+    for gen in range(elements_num):
         if random.random() < mutation_rate:
-            std = mutation_scale[i]
-            # absolute std
-            abs_std = std * (bounds[i,1] - bounds[i,0]) if bounds is not None else std
-            params[i] += np.random.normal(0, abs_std)
+            standard_deviation = mutation_scale[gen]
+            # La desviación estándar se escala para que sea relativa al rango de valores
+            # permitidos para ese gen. Esto asegura que la mutación no sea demasiado grande
+            # para un gen particular.
+            abs_standard_deviation = standard_deviation * (bounds[gen,1] - bounds[gen,0]) if bounds is not None else standard_deviation
+            # Se crea una mutación aleatoria para el gen actual.
+            mutation = np.random.normal(0, abs_standard_deviation)
+            individual_params[gen] += mutation
     """
     Crea un vector de ruido aleatorio del mismo tamaño, extraído de una distribución 
     Gaussiana (Normal) con media 0 y desviación estándar igual a scale.
     Suma este vector de ruido al vector de parámetros original.
     """
     if bounds is not None:
-        params = np.clip(params, bounds[:,0], bounds[:,1])
+        individual_params = np.clip(individual_params, bounds[:,0], bounds[:,1])
         """
         np.clip(..., bounds[:,0], bounds[:,1]) es crucial: 
         se aseguran de que, incluso después de un cruzamiento o mutación "extremos", 
         los parámetros del nuevo individuo nunca violen los límites biológicamente plausibles 
         que definimos en bounds.
         """
-    return params
+    return individual_params
 
 # -----------------------
 # EGA core
@@ -366,15 +370,22 @@ class EGA:
         if tasks_for_evaluator:
             # Ejecuta las evaluaciones en paralelo usando el wrapper
             try:
+                # Utiliza pebble para paralelizar las evaluaciones.
+                # El wrapper _evaluator_wrapper se encarga de llamar al evaluator_toy.py, para que 
+                # el evaluator_toy.py reciba los parámetros del individuo y devuelva el fitness.
+                # El wrapper _evaluator_wrapper se encarga de manejar los timeouts y los errores.
                 with pebble.ProcessPool(max_workers=self.processes, initializer=init_worker, initargs=(self.seed,)) as pool:
-                    # Utiliza pebble para paralelizar las evaluaciones.
-                    # El wrapper _evaluator_wrapper se encarga de llamar al evaluator_toy.py, para que 
-                    # el evaluator_toy.py reciba los parámetros del individuo y devuelva el fitness.
-                    # El wrapper _evaluator_wrapper se encarga de manejar los timeouts y los errores.
+                    # pool.map aplica la función _evaluator_wrapper a cada elemento en tasks_for_evaluator 
+                    # Devuelve un objeto future que representa las computaciones asincrónicas. 
+                    # timeout=self.timeout establece un límite de tiempo por tarea; si una excede, se lanza TimeoutError.
                     future = pool.map(_evaluator_wrapper, tasks_for_evaluator, timeout=self.timeout)
                     iterator = future.result()
+                    # future.result() devuelve un iterador sobre los resultados de las tareas mapeadas. Este iterador permite 
+                    # acceder a los resultados uno por uno a medida que se completan, en lugar de esperar a todos.
                     while True:
                         try:
+                            # next(iterator) obtiene el siguiente resultado de la evaluación asincrónica.
+                            # Si no hay más resultados, se lanza StopIteration.
                             result = next(iterator)
                             fitness_results.append(result)
                         except StopIteration:
@@ -402,6 +413,7 @@ class EGA:
 
     def _select_parents(self, tournament_k):
         """Selecciona a los padres para la siguiente generación usando selección por torneo.
+        El torneo  
 
         Args:
             tournament_k (int): Número de participantes en cada torneo.
@@ -409,17 +421,25 @@ class EGA:
         Returns:
             List[Individual]: La lista de individuos seleccionados.
         """
+        # num_select indica cuántos padres seleccionar para generar descendientes, asegurando que 
+        # la nueva población tenga exactamente self.pop_size individuos.
         return self.tournament_selection(tournament_k, num_select=self.pop_size - self.elite_size)
 
     
     def _create_offspring(self, parents):
         """Crea la descendencia a partir de los padres seleccionados."""
+        # offspring es una lista que almacenará los nuevos individuos (descendientes) generados a partir de los padres seleccionados.
+        # Representa la nueva generación que se creará mediante cruce o clonación.
         offspring = []
         i = 0
+        # self.pop_size - self.elite_size representa el número de descendientes necesarios para completar la población,
+        # excluyendo los espacios reservados para los individuos élite que se copian directamente.
         while len(offspring) < self.pop_size - self.elite_size:
+            # En cada iteración, selecciona dos padres consecutivos (parent1 y parent2).
             parent1 = parents[i]
             parent2 = parents[i + 1]
-
+            
+            # Aplica cruce con probabilidad self.crossover_rate o clona parent1, crea un nuevo individuo con los parámetros resultantes.
             if random.random() < self.crossover_rate:
                 child_params = blx_alpha_crossover(parent1.params, parent2.params, self.alpha_blx)
             else:
@@ -427,8 +447,10 @@ class EGA:
 
             child = Individual(self.bounds)
             child.params = child_params
+            # Lo añade a offspring, avanza el índice i en 2.
             offspring.append(child)
             i = (i + 2)
+            # Si i excede el límite de parents, reinicia i a 0 para reutilizar padres.
             if i >= len(parents) - 1: i = 0
         return offspring
 
@@ -492,7 +514,10 @@ class EGA:
         selected = []
         for _ in range(num_select):
             participants = random.sample(self.population, tournament_k)
+            # Selecciona aleatoriamente tournament_k individuos de la 
+            # población actual ( self.population ) sin reemplazo.
             winner = min(participants, key=lambda x: x.fitness)
+            # Encuentra el individuo con el menor valor de fitness entre los participantes.
             selected.append(winner)
         return selected
 
@@ -542,18 +567,21 @@ class EGA:
         # Carga en caché de los individuos y sus fitness en base a la primera población:
         self._evaluate_population(self.population)
         # Guarda datos estadísticos en history:
-        self._record_stats()
+        self._record_stats() # Primer registro de estadísticas
         gen = 0
         # Muestra datos de la primera población:
         if verbose:
             print(f"[Gen {gen}] min={min([individual.fitness for individual in self.population]):.6g}; avg={np.mean([individual.fitness for individual in self.population]):.6g}")
         
         for gen in range(1, self.generations + 1):
+            # Comienza el tiempo de la simulación
             start = time.time()
 
             # 1. Elitismo: preservar los K mejores
             self.population.sort(key=lambda x: x.fitness)
+            # Reorganiza los elementos de self.population en orden ascendente (mejor fitness primero) basado en el valor del atributo x.fitness de cada individuo
             elites = [individual.copy() for individual in self.population[:self.elite_size]]
+            # Copia los mejores individuos (elites) en una nueva lista llamada elites.
 
             # 2. Selección de padres
             parents = self._select_parents(self.tournament_k)
@@ -570,8 +598,8 @@ class EGA:
             # 6. Formar la nueva población
             self.population = elites + offspring
 
-            # record stats
-            self._record_stats()
+            # Guarda datos estadísticos en history:
+            self._record_stats() # Siguiente registro de estadísticas
             end = time.time()
             self.history["gen_time"].append(end - start)
 

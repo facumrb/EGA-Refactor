@@ -210,12 +210,46 @@ class ToyODEEvaluator:
         # El signo del número que retorna (+/-) es el mismo signo del fitness_penalty_factor
         return self.fitness_penalty_factor * np.sum(np.abs(individual))
 
+    def _calculate_reward_tolerance(self):
+        """Calcula REWARD_TOLERANCE dinámicamente basado en la norma del target y factores de configuración.
+
+        Biológicamente, simula umbrales de activación en redes genéticas, adaptándose a la escala de expresión
+        para capturar variabilidad celular real (ej. ruido en transcripción).
+        """
+        base_tolerance = 0.1  # Valor base empírico (10% de desviación aceptable)
+        scale_factor = np.linalg.norm(self.target)  # Escala con magnitud del objetivo
+        noise_factor = 1 + self.noise_std  # Ajuste por variabilidad biológica/numérica
+        return base_tolerance * scale_factor * noise_factor
+
     def _calculate_reached_reward(self, solution):
-        """Otorga una recompensa si la simulación alcanza el objetivo tempranamente."""
+        """Otorga una recompensa si la simulación alcanza el objetivo tempranamente.
+
+        Biológicamente, esta recompensa modela la ventaja adaptativa de redes genéticas que logran
+        un estado deseado (ej. patrón de expresión en diferenciación celular) de manera rápida y
+        eficiente, simulando presiones evolutivas por respuestas oportunas en entornos dinámicos.
+        """
         if solution is not None:
-            for y in solution.y.T:
-                if np.linalg.norm(y - self.target) < REWARD_TOLERANCE:
-                    return REACHED_REWARD_VALUE  # Recompensa que reduce el fitness
+            for system_state, y in enumerate(solution.y.T):
+                # solution.y es una matriz NumPy donde cada fila representa la evolución temporal de una proteína (concentración a lo largo del tiempo), 
+                # y cada columna un instante temporal. ".T" la transpone, convirtiéndola en una matriz donde cada fila es un vector de concentraciones 
+                # de todas las proteínas en un tiempo específico. Así, solution.y.T contiene los estados del sistema (vectores de concentraciones) para 
+                # cada punto de tiempo evaluado en la simulación.
+                if self._calculate_L2_distance(y) < self._calculate_reward_tolerance():
+                    # un estado biológico "deseado" no necesita ser exacto debido a la variabilidad inherente en los sistemas biológicos, como 
+                    # fluctuaciones en la expresión génica o ruido estocástico. Permite que el modelo considere como "alcanzado" un estado cercano 
+                    # al objetivo, reflejando tolerancias reales en procesos como la regulación génica, donde leves desviaciones son aceptables sin 
+                    # comprometer la funcionalidad celular.
+                    t_reached = solution.t[system_state]
+                    # Se asigna el valor del tiempo de simulación en el índice system_state , que representa el primer punto temporal donde se cumple 
+                    # la condición de proximidad al objetivo.
+
+                    # Se calcula una recompensa negativa que es inversamente proporcional al tiempo t_reached (cuanto menor el tiempo, mayor la magnitud 
+                    # negativa de la recompensa, lo que mejora el fitness ya que valores más bajos de fitness son mejores). Se añade 1e-6 para evitar 
+                    # división por cero si t_reached es cero. Esto penaliza tiempos largos y premia respuestas rápidas.
+                    # Modela la ventaja evolutiva de redes genéticas que logran estados deseados rápidamente, como en respuestas inmunes (e.g., activación 
+                    # rápida de genes ante patógenos) o desarrollo embrionario (e.g., diferenciación celular oportuna). Una recompensa más negativa 
+                    # incentiva eficiencia temporal, reflejando selección natural por mecanismos biológicos ágiles y energéticamente óptimos.
+                    return -REACHED_REWARD_VALUE / (t_reached + 1e-6)
         return 0.0
 
     def evaluate(self, individual):
@@ -253,9 +287,6 @@ class ToyODEEvaluator:
             L2_distance = self._calculate_L2_distance(y_final)
             complexity_penalty = self._calculate_complexity_penalty(individual)
             reached_reward = self._calculate_reached_reward(solution)
-            # VER RECOMPENZA PROPORCIONAL AL TIEMPO
-            # Hacer la recompensa inversamente proporcional al tiempo de la simulación en que se alcanza. 
-            # Es decir, cuanto antes se llegue, mayor es la recompensa (menor el valor de fitness).
 
             # El fitness total es la suma de sus componentes
             fitness = float(L2_distance + complexity_penalty + reached_reward)

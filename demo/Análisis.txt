@@ -70,24 +70,28 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                 por el momento es necesario conocer los valores y qué son
                 pero al momento de ser usados debe investigarse la teoría
         run_demo.py
-                + evaluator = ToyODEEvaluator
+                + # Parámetros del evaluador
                         recorrer hasta ...
-                + fitness_penalty_factor=config["fitness_penalty_factor"]
+                + evaluator = ToyODEEvaluator(evaluator_config)
         evaluator_toy.py
                 + class ToyODEEvaluator:
                         recorrer hasta ...
                 + self.bounds = np.array(bounds, dtype=float) if bounds is not None else DEFAULT_BOUNDS
                         (prestar atención a los valores de las constantes y el uso en config.yaml para investigar)
         run_demo.py
-                + ega_config = 
+                + # Configuración del EGA
                         recorrer hasta ...
                 + ega = EGA(ega_config, evaluator)
 
         RETOMAR DESDE ACÁ PORQUE HUBO CAMBIOS:
 
         ega_core.py
-                + class EGA
+                + class EGA:
                         recorre hasta ...
+                + self.population = [Individual(self.bounds, self.strategy) for _ in range(self.pop_size)]
+                + class Individual:
+                        recorrer hasta ...
+                + self.fitness = None
                 + self.history = {"min": [], "avg": [], "gen_time": []}
         run_demo.py
                 + results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
@@ -141,7 +145,70 @@ Tarea: recolectar los estudios que sustentan al proyecto.
                         recorrer hasta ...
                 + return self.fitness_penalty_factor * np.sum(np.abs(individual))
                 + reached_reward = self._calculate_reached_reward(solution)
+                + def _calculate_reached_reward(self, solution):
                         recorrer hasta ...
-                + 
+                + if self._calculate_L2_distance(y) < self._calculate_reward_tolerance():
+                + def _calculate_reward_tolerance(self):
+                        recorrer hasta
+                + return base_tolerance * scale_factor * noise_factor
+                + if self._calculate_L2_distance(y) < self._calculate_reward_tolerance():
+                        recorrer hasta
+                + return 0.0
+                + # El fitness total es la suma de sus componentes
+                        recorrer hasta
+                + return float('inf') # Penalización para fallos en simulación
+        ega_core.py
+                + iterator = future.result()
+                        recorrer hasta ...
+                + self.cache[key_for_Dictionary] = individual.fitness
+                + self._evaluate_population(self.population)
+                        recorrer hasta ...
+                + self._record_stats() # Primer registro de estadísticas
+                + def _record_stats(self):
+                        recorrer hasta ...
+                + self.history["avg"].append(float(np.mean(fitness)))
+                + gen = 0
+                        recorrer hasta ...
+                + parents = self._select_parents(self.tournament_k)
+                + def _select_parents(self, tournament_k):
+                        recorrer hasta ...
+                + return self.tournament_selection(tournament_k, num_select=self.pop_size - self.elite_size)
+                + def tournament_selection(self, tournament_k=3, num_select=None):
+                        recorrer hasta ...
+                + return selected
+                + return self.tournament_selection(tournament_k, num_select=self.pop_size - self.elite_size)
+                + # 3. Creación de descendencia (cruzamiento)
+                + offspring = self._create_offspring(parents)
+                + def _create_offspring(self, parents):
+                        recorrer hasta ...
+                + child_params = blx_alpha_crossover(parent1.params, parent2.params, self.alpha_blx)
+                + def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, blx_alpha=0.3, bounds=None):
+                        recorrer hasta ...
+                + return child
+                + child_params = blx_alpha_crossover(parent1.params, parent2.params, self.alpha_blx)
+                        recorrer hasta ...
+                + child_params = parent1.params.copy()
+                + def copy(self):
+                        recorrer hasta ...
+                + return individual_copy
+                + child = Individual(self.bounds)
+                        recorrer hasta ...
+                + return offspring
+                + self._apply_mutation(offspring)
+                + def _apply_mutation(self, offspring):
+                        recorrer hasta ...
+                + child.params = gaussian_mutation(child.params, self.mutation_rate, self.mutation_scale, self.bounds)
+                + def gaussian_mutation(params: np.ndarray, mutation_rate: float, mutation_scale: np.ndarray, bounds=None):
+                        recorrer hasta ...
+                + return individual_params
+                + child.params = gaussian_mutation(child.params, self.mutation_rate, self.mutation_scale, self.bounds)
+                + self._evaluate_population(offspring) # Evalúa solo a los nuevos
+                        (ya se explicó "_evaluate_population") recorrer hasta ...
+                        (ya se explicó "_record_stats()") recorrer hasta ...
+                + return final
+        run_demo.py
+                + # Imprimir resultados
+                        recorrer hasta ...
+                + print("Tiempo total (s):", results["total_time_s"])
 
-        INFORMAR LLEGADA PORQUE YA ES ZONA DE REVISIÓN DE CÓDIGO. NO SEGUIR INVESTIGANDO.        
+        FIN.
