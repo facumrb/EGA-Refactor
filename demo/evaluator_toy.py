@@ -22,13 +22,6 @@ MIN_PRODUCTION_RATE = 1e-6
 MIN_DEGRADATION_RATE = 1e-3
 
 # --- Parámetros de la función de fitness ---
-FITNESS_PENALTY_FACTOR = 0.001  # Factor para la penalización por complejidad
-# Penalización por complejidad : Esta constante, FITNESS_PENALTY_FACTOR, se utiliza para multiplicar 
-# la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
-# al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
-# complejas) cuando es posible.
-# La mejor aproximación es experimentar. Ejecutar el algoritmo con diferentes valores del factor de 
-# penalización y analizar los resultados.
 
 FITNESS_FAILURE_VALUE = 1e9       # Valor de fitness si la simulación falla
 REWARD_TOLERANCE = 0.1            # Tolerancia para la recompensa por alcanzar el objetivo
@@ -59,6 +52,7 @@ class ToyODEEvaluator:
         self.dt = config["dt"]
         self.noise_std = config["noise_std"]
         self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
+        self.fitness_penalty_factor = config["fitness_penalty_factor"]
         self.target = np.array(config["target"], dtype=float)
         self.bounds = np.array(config["bounds"], dtype=float)
 
@@ -127,12 +121,12 @@ class ToyODEEvaluator:
         No nos interesa si una interacción es inhibidora (negativa) o activadora (positiva), solo su magnitud o "fuerza".
         Se suma todos los valores absolutos calculados en el paso anterior. El resultado es un único número que 
         representa la "magnitud total" de todos los parámetros del individuo.
-        Finalmente, multiplica esa suma por la constante FITNESS_PENALTY_FACTOR. 
-        FITNESS_PENALTY_FACTOR actúa como un peso: decide cuánta importancia se le da a esta penalización de complejidad 
+        Finalmente, multiplica esa suma por la constante fitness_penalty_factor. 
+        fitness_penalty_factor actúa como un peso: decide cuánta importancia se le da a esta penalización de complejidad 
         en el cálculo total del fitness.
         """
-        return FITNESS_PENALTY_FACTOR * np.sum(np.abs(individual))
-        # El signo del número que retorna (+/-) es el mismo signo del FITNESS_PENALTY_FACTOR
+        return self.fitness_penalty_factor * np.sum(np.abs(individual))
+        # El signo del número que retorna (+/-) es el mismo signo del fitness_penalty_factor
 
     def _calculate_reached_reward(self, solution):
         """Otorga una recompensa si la simulación alcanza el objetivo tempranamente."""

@@ -132,6 +132,13 @@ initial_conditions: [0.1, 0.1, 0.1]
 # estimulado, donde los factores de interés están presentes en pequeñas cantidades, 
 # pero están listos para responder a las interacciones que el algoritmo genético descubrirá.
 
+fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
+# Penalización por complejidad : Esta constante, fitness_penalty_factor, se utiliza para multiplicar 
+# la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
+# al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
+# complejas) cuando es posible.
+# La mejor aproximación es experimentar. Ejecutar el algoritmo con diferentes valores del factor de 
+# penalización y analizar los resultados.
 
 # Directorio para guardar los "snapshots" JSON (estados intermedios) de cada generación.
 snapshot_dir: "snapshots"

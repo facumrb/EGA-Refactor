@@ -61,7 +61,8 @@ def main():
     # Configuración del Evaluador
     evaluator_config = {
         key: config[key] for key in [
-            "target", "bounds", "t_span", "dt", "noise_std", "initial_conditions"
+            "target", "bounds", "t_span", "dt", "noise_std", "initial_conditions",
+            "fitness_penalty_factor"
         ]
     }
 
