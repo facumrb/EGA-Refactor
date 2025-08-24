@@ -110,7 +110,7 @@ class Individual:
         self.num_params = self.bounds.shape[0] # Número de parámetros
         # .shape[0]: Obtiene la cantidad de filas del array (cada fila = 1 parámetro)
         # self.num_params : Almacena el total de parámetros a optimizar
-        
+
         # Inicialización aleatoria dentro de los límites fisiológicos
         # self.bounds[:,1] selecciona la columna de límites superiores.
         # self.bounds[:,0] selecciona la columna de límites inferiores.
@@ -368,13 +368,17 @@ class EGA:
         
         # Ejecuta las evaluaciones en paralelo usando el wrapper
         try:
-            async_results = self.pool.map_async(_evaluator_wrapper, tasks_for_evaluator)
-            fitness_results = async_results.get(timeout=self.timeout)
+            async_fitness_solution = self.pool.map_async(_evaluator_wrapper, tasks_for_evaluator)
+            fitness_solution_results = async_fitness_solution.get(timeout=self.timeout)
             # Es un cuello de botella:
             # es donde el programa pasa la mayor parte del tiempo. 
             # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
             # en el tiempo total de ejecución.
             # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
+            fitness_results, solution_results = zip(*fitness_solution_results)
+            # print("ATENCIÓN:")
+            # print("FITNESS:", fitness_results)
+            # print("SOLUTION:", solution_results)
             for individual, fitness in zip(eval_needed_individuals, fitness_results):
                 individual.fitness = float(fitness) if fitness is not None else float('inf')
                 # Si el fitness es infinito, se asume que la evaluación falló.

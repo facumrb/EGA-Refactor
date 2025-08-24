@@ -11,7 +11,6 @@ de la manera más parecida a un resultado objetivo o experimental.
 import numpy as np
 from scipy.integrate import solve_ivp
 from typing import Dict
-import time
 
 # Constantes para la configuración del evaluador y la función de fitness
 DEFAULT_TARGET = np.array([1.0, 0.8, 0.6])
@@ -56,7 +55,6 @@ class ToyODEEvaluator:
         self.target = np.array(config["target"], dtype=float)
         self.bounds = np.array(config["bounds"], dtype=float)
 
-
     def _ode_system(self, t, y, p):
         """Define el sistema de Ecuaciones Diferenciales Ordinarias (EDOs) que modela la red genética.
 
@@ -99,8 +97,9 @@ class ToyODEEvaluator:
         t_eval = np.arange(t0, tf + self.dt, self.dt) # np.arange(inicio, fin, paso) son los puntos temporales
         try:
             # Se resuelve el sistema de EDOs.
-            solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual),
-                            t_span=(t0, tf), y0=y0, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA")
+            solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0,
+                                    t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA", 
+                                    dense_output=True)
             y_final = solution.y[:, -1]
             # Opcionalmente, se añade ruido para simular variabilidad experimental.
             if self.noise_std > 0:
@@ -185,7 +184,7 @@ class ToyODEEvaluator:
 
         # El fitness total es la suma de sus componentes
         fitness = float(L2_distance + complexity_penalty + reached_reward)
-        return fitness
+        return fitness, solution
 
 # Bloque para una prueba rápida del evaluador.
 if __name__ == "__main__":
