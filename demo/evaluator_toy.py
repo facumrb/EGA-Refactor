@@ -55,7 +55,7 @@ class ToyODEEvaluator:
         self.target = np.array(config["target"], dtype=float)
         self.bounds = np.array(config["bounds"], dtype=float)
 
-    def _ode_system(self, t, y, p):
+    def _ode_system(self, t, y, individual):
         """Define el sistema de Ecuaciones Diferenciales Ordinarias (EDOs) que modela la red genética.
 
         Args:
@@ -69,9 +69,9 @@ class ToyODEEvaluator:
         # p (parámetros) tiene 9 elementos.
         # Modelo simple: dy_i/dt = tasa_prod_i * sigmoide(interaccion_i * suma_total) - tasa_deg_i * y_i
         # Decodificamos 'p' de forma vectorial para mayor eficiencia.
-        prod = np.maximum(MIN_PRODUCTION_RATE, p[0::3]) # Tasas de producción
-        deg = np.maximum(MIN_DEGRADATION_RATE, p[1::3]) # Tasas de degradación
-        inter = p[2::3] # Modulan la producción según la actividad total
+        prod = np.maximum(MIN_PRODUCTION_RATE, individual[0::3]) # Tasas de producción
+        deg = np.maximum(MIN_DEGRADATION_RATE, individual[1::3]) # Tasas de degradación
+        inter = individual[2::3] # Modulan la producción según la actividad total
 
         # Una interacción de juguete: produccion * sigmoide(inter_i * (suma y))
         # Se calcula la suma total y la activación sigmoide de forma vectorial.
