@@ -11,6 +11,9 @@ de la manera más parecida a un resultado objetivo o experimental.
 import numpy as np
 from scipy.integrate import solve_ivp
 import time
+from pebble import ProcessPool
+from concurrent.futures import TimeoutError as PebbleTimeout
+
 
 # Constantes para la configuración del evaluador y la función de fitness
 DEFAULT_TARGET = np.array([1.0, 0.8, 0.6])
@@ -48,10 +51,12 @@ class ToyODEEvaluator:
         self.dt = config["dt"]
         self.noise_std = config["noise_std"]
         self.fitness_penalty_factor = config["fitness_penalty_factor"]
+        self.high_fitness_penalty = config["high_fitness_penalty"]
+        self.timeout = config.get("timeout", 25.0)
         self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
         self.min_production_rate = config["min_production_rate"]
         self.min_degradation_rate = config["min_degradation_rate"]
-        self.seed = config["seed"],
+        self.seed = config["seed"]
         self.target = np.array(config["target"], dtype=float) if config["target"] is not None else DEFAULT_TARGET
         self.bounds = np.array(config["bounds"], dtype=float) if config["bounds"] is not None else DEFAULT_BOUNDS
 
@@ -274,16 +279,18 @@ class ToyODEEvaluator:
         # Convierte la lista de parámetros en un array de NumPy de tipo flotante, el formato que necesita 
         # el solver de Ecuaciones Diferenciales (ODE).
 
-        # Se verifica si los parámetros están dentro de los límites.
-        # Si no están, se penaliza con un valor infinito.
-        if not np.all((self.bounds[:, 0] <= individual) & (individual <= self.bounds[:, 1])):
-            return float('inf') # Penalización infinita para bounds violados
-        
+        # Soft constraint para bounds en lugar de 'inf'
+        bound_violation = np.sum(np.maximum(0, self.bounds[:, 0] - individual) + np.maximum(0, individual - self.bounds[:, 1]))
+        if bound_violation > 0:
+            penalty = bound_violation * 1000  # Penalización proporcional, ajustable
+        else:
+            penalty = 0
+
         try:
             # Estado final del sistema y el objeto de la solución
             y_final, solution = self.simulate(individual)
-            if y_final is None:  # Si aún hay fallo (aunque ahora usamos excepciones)
-                return float('inf')
+            if y_final is None:
+                return self.high_fitness_penalty + penalty  # Penalización alta pero finita
 
             # Cálculo de los componentes del fitness a través de métodos especializados
             L2_distance = self._calculate_L2_distance(y_final)
@@ -294,7 +301,7 @@ class ToyODEEvaluator:
             fitness = float(L2_distance + complexity_penalty + reached_reward)
             return fitness
         except ValueError:
-            return float('inf') # Penalización para fallos en simulación
+            return self.high_fitness_penalty + penalty  # Penalización finita
 
 # Bloque para una prueba rápida del evaluador.
 if __name__ == "__main__":

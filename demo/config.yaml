@@ -13,7 +13,7 @@ populationSize: 30 # Valor sugerido: 40–60
 # pero limitado por el costo computacional del evaluador ODE.
 
 # Número de generaciones: cuántas iteraciones ejecutará el algoritmo.
-generations: 25 # Valor sugerido: 40–100
+generations: 120 # Valor sugerido: 40–100
 # Debe permitir convergencia razonable con el budget computacional.
 
 # Tasa de cruzamiento: probabilidad de que dos padres se crucen para crear descendencia.
@@ -67,8 +67,22 @@ bounds:
 
 # --- Parámetros de Evaluación y Ejecución ---
 
+# Configuración para el ajuste dinámico del timeout de evaluación.
+# Si la tasa de fallos supera este umbral, se incrementará el timeout.
+failure_rate_threshold_increase: 0.3
+# Si la tasa de fallos es menor a este umbral, se reducirá el timeout.
+failure_rate_threshold_decrease: 0.05
+# Factor por el cual se multiplicará el timeout al aumentarlo (ej. 2.0 para duplicar).
+timeout_increase_factor: 2.0
+# Factor por el cual se multiplicará el timeout al reducirlo (ej. 0.9 para reducir un 10%).
+timeout_decrease_factor: 0.9
+
+# Tiempos de espera para la evaluación de un individuo (mínimo y máximo).
+base_timeout: 25.0
+max_timeout: 60000.0
+
 # Tiempo máximo de espera (en segundos) para la evaluación de un solo individuo.
-timeout: 20.0 # Valor sugerido: 15–30 s
+timeout: 25.0 # Valor sugerido: 15–30 s
 # Es práctica recomendada en supervisión de evaluadores pesados.
 
 # Número de procesos a utilizar para evaluar la población en paralelo.
@@ -156,6 +170,9 @@ min_degradation_rate: 1e-3
 # (vida media ~10-100h, como en factores como SOX9). Se elige pequeño para no sesgar el modelo,
 # pero lo suficientemente grande para evitar artefactos numéricos en ODE.
 # En redes genéticas, tasas cero romperían homeostasis; esto fuerza dinámica mínima, como en modelos de circuitos genéticos.
+
+high_fitness_penalty: 1e6
+# se utiliza como una penalización alta pero finita en lugar de float('inf') (infinito).
 
 fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
 # Penalización por complejidad : Esta constante, fitness_penalty_factor, se utiliza para multiplicar 

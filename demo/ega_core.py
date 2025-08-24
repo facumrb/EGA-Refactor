@@ -312,13 +312,26 @@ class EGA:
         self.alpha_blx = float(config.get("alpha_blx", 0.15))
         self.mutation_scale = np.array(config.get("mutation_scale", [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]), dtype=float)
         self.tournament_k = int(config.get("tournament_k", 3))
-        self.timeout = float(config.get("timeout", 20.0))
+
+        self.timeout = float(config.get("timeout", 25.0))
+        self.base_timeout = float(config.get("base_timeout", 25.0))
+        self.max_timeout = float(config.get("max_timeout", 300.0))
+
+        # Cargar la configuración del timeout adaptativo
+        timeout_cfg = config.get('timeout_config', {})
+        self.failure_rate_threshold_increase = timeout_cfg.get('failure_rate_threshold_increase', 0.3)
+        self.failure_rate_threshold_decrease = timeout_cfg.get('failure_rate_threshold_decrease', 0.05)
+        self.timeout_increase_factor = timeout_cfg.get('timeout_increase_factor', 2.0)
+        self.timeout_decrease_factor = timeout_cfg.get('timeout_decrease_factor', 0.9)
+
         self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
         self.seed = int(config.get("seed", 42))
         random.seed(self.seed)
         np.random.seed(self.seed)
+        self.high_fitness_penalty = float(config.get("high_fitness_penalty", 1e6))
         self.cache = {}  # caching evaluations: key -> fitness
         self.strategy = config.get("strategy", "uniform")
+        self.previous_avg_fitness = None
         self.population = [Individual(self.bounds, self.strategy) for _ in range(self.pop_size)]
 
         self.history = {"min": [], "avg": [], "gen_time": []}
@@ -388,28 +401,57 @@ class EGA:
                             # Si no hay más resultados, se lanza StopIteration.
                             result = next(iterator)
                             fitness_results.append(result)
+
                         except StopIteration:
                             break # Se completaron todas las evaluaciones
                         except TimeoutError:
+                            if self.previous_avg_fitness is not None:
+                                estimated = self.previous_avg_fitness + 1000  # Penalización
+                            else:
+                                estimated = self.high_fitness_penalty
+                            fitness_results.append(estimated)
                             # Esta evaluación específica excedió el tiempo límite, se le asigna un fitness pobre.
-                            fitness_results.append(float('inf'))
+                        
                         except Exception:
                             # La evaluación falló por otra razón, se le asigna un fitness pobre.
-                            fitness_results.append(float('inf'))
+                            fitness_results.append(self.high_fitness_penalty)
             except Exception as error:
                 # Error inesperado en la gestión del pool, se asigna fitness pobre a todos.
                 print(f"Una evaluación falló con un error: {error}")
-                fitness_results = [float('inf')] * len(tasks_for_evaluator)
+                fitness_results = [self.high_fitness_penalty] * len(tasks_for_evaluator)
                 # El error se "evita" asignando valores fitness que hacen a los individuos menos aptos. 
 
         # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
         for individual, fitness in zip(eval_needed_individuals, fitness_results):
-            individual.fitness = float(fitness) if fitness is not None else float('inf')
+            individual.fitness = float(fitness) if fitness is not None else self.high_fitness_penalty
             # Si el fitness es infinito, se asume que la evaluación falló.
             # En este caso, se asigna un valor alto al fitness para que el individuo sea menos apto.
             key_for_Dictionary = safe_round_tuple(individual.decode())
             # Se genera una clave única para el genotipo del individuo.
             self.cache[key_for_Dictionary] = individual.fitness
+
+        # Lógica de ajuste de timeout adaptativo
+        # Se calcula la tasa de fallos después de que todas las evaluaciones han terminado.
+        num_failures = sum(1 for individual in population_to_eval if individual.fitness is not None and individual.fitness >= self.high_fitness_penalty)
+        if population_to_eval:
+            failure_rate = num_failures / len(population_to_eval)
+        else:
+            failure_rate = 0
+            
+        # Ajuste dinámico del timeout usando parámetros de configuración.
+        if failure_rate > self.failure_rate_threshold_increase:
+            self.timeout = min(self.max_timeout, self.timeout * self.timeout_increase_factor)
+            print(f"High failure rate ({failure_rate:.2%}), increasing timeout to {self.timeout:.2f}s")
+        elif failure_rate < self.failure_rate_threshold_decrease:
+            self.timeout = max(self.base_timeout, self.timeout * self.timeout_decrease_factor)
+
+        # Se actualiza el fitness promedio de la población para la siguiente generación.
+        # Esto se hace una sola vez, usando la población completa y evaluada.
+        finite_fitness = [individual.fitness for individual in population_to_eval 
+                          if individual.fitness is not None and individual.fitness < self.high_fitness_penalty]
+        
+        if finite_fitness:
+            self.previous_avg_fitness = np.mean(finite_fitness)
 
     def _select_parents(self, tournament_k):
         """Selecciona a los padres para la siguiente generación usando selección por torneo.

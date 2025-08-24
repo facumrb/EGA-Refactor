@@ -41,10 +41,17 @@ def get_default_config():
         "alpha_blx": 0.3,
         "mutation_scale": [0.05] * len(default_bounds),
         "timeout": 15.0,
+        "base_timeout": 15.0,
+        "max_timeout": 60.0,
+        "failure_rate_threshold_increase": 0.3,
+        "failure_rate_threshold_decrease": 0.1,
+        "timeout_increase_factor": 2.0,
+        "timeout_decrease_factor": 0.8,
         "processes": max(1, os.cpu_count() - 1),
         "seed": 42,
         "tournament_k": 3,
         "fitness_penalty_factor": 0.001,
+        "high_fitness_penalty": 1e6,
         "initial_conditions": [0.1, 0.1, 0.1],
         "min_production_rate": 1e-6, 
         "min_degradation_rate": 1e-3,
@@ -84,8 +91,8 @@ def main():
     evaluator_config = {
         key: config[key] for key in [
             "target", "bounds", "t_span", "dt", "noise_std", 
-            "fitness_penalty_factor", "initial_conditions",
-            "min_production_rate", "min_degradation_rate", "seed"
+            "fitness_penalty_factor", "high_fitness_penalty", "initial_conditions",
+            "min_production_rate", "min_degradation_rate", "seed", "timeout"
         ]
     }
 
@@ -97,7 +104,9 @@ def main():
         key: config[key] for key in [
             "populationSize", "generations", "crossover_rate", "mutation_rate", 
             "elite_size", "bounds", "alpha_blx", "mutation_scale", "timeout", 
-            "processes", "seed", "tournament_k"
+            "base_timeout", "max_timeout", "failure_rate_threshold_increase", "failure_rate_threshold_decrease",
+            "timeout_increase_factor", "timeout_decrease_factor", "processes", "seed", "tournament_k", 
+            "high_fitness_penalty"
         ]
     }
 
