@@ -100,7 +100,7 @@ class ToyODEEvaluator:
         try:
             # Se resuelve el sistema de EDOs.
             solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual),
-                            t_span=(t0, tf), y0=y0, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6)
+                            t_span=(t0, tf), y0=y0, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA")
             y_final = solution.y[:, -1]
             # Opcionalmente, se añade ruido para simular variabilidad experimental.
             if self.noise_std > 0:
