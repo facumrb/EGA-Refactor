@@ -575,6 +575,7 @@ class EGA:
                 "min": float(min([p.fitness for p in self.population])),
                 "avg": float(np.mean([p.fitness for p in self.population])),
                 "best_params": self.population[0].params.tolist(),
+                "pop_params": [individual.params.tolist() for individual in self.population],
                 "seed": self.seed,
                 "config": self.config
             }
