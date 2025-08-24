@@ -61,7 +61,7 @@ class ToyODEEvaluator:
         Args:
             t (float): Tiempo actual (requerido por el solver de EDOs, aunque no se use explícitamente aquí).
             y (np.ndarray): Vector con las concentraciones actuales de las proteínas (factores de transcripción).
-            p (np.ndarray): Vector de parámetros que define el comportamiento del sistema.
+            individual (np.ndarray): Vector de parámetros que define el comportamiento del sistema.
 
         Returns:
             np.ndarray: Las tasas de cambio (derivadas) de las concentraciones de proteínas.
