@@ -24,12 +24,7 @@ import random
 import math
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from functools import partial
-from typing import Callable, Dict
-
-STRATEGY = "uniform" # o "center"
-# - uniform : Simula variabilidad natural en parámetros bioquímicos
-# - center : Modela condiciones homeostáticas equilibradas
+from typing import Dict
 
 # -----------------------
 # Utilidades / configuración
@@ -313,10 +308,11 @@ class EGA:
         self.timeout = float(config.get("timeout", 20.0))
         self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
         self.seed = int(config.get("seed", 42))
+        self.strategy = config.get("strategy")
         random.seed(self.seed)
         np.random.seed(self.seed)
         self.cache = {}  # caching evaluations: key -> fitness
-        self.population = [Individual(self.bounds, STRATEGY) for _ in range(self.pop_size)]
+        self.population = [Individual(self.bounds, self.strategy) for _ in range(self.pop_size)]
 
         self.history = {"min": [], "avg": [], "gen_time": []}
         # Pool

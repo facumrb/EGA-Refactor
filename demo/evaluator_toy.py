@@ -10,6 +10,7 @@ de la manera más parecida a un resultado objetivo o experimental.
 
 import numpy as np
 from scipy.integrate import solve_ivp
+from typing import Dict
 import time
 
 # Constantes para la configuración del evaluador y la función de fitness
@@ -19,27 +20,6 @@ DEFAULT_BOUNDS = np.array([[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3)
 # --- Parámetros de la simulación ---
 MIN_PRODUCTION_RATE = 1e-6
 MIN_DEGRADATION_RATE = 1e-3
-INITIAL_CONDITIONS = np.array([0.1, 0.1, 0.1])
-# Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
-# del vector representa una concentración inicial, baja pero no nula, de los tres 
-# factores de transcripción (o proteínas) en el modelo. Biológicamente, es muy 
-# raro que la concentración de una proteína sea absolutamente cero. Las células 
-# suelen tener un nivel de "fugas" o expresión basal de muchos genes.
-# Punto de Partida para la Reprogramación : En el contexto de la reprogramación 
-# celular (que es lo que este modelo simula de forma abstracta), estas condiciones 
-# iniciales representan el estado de una célula antes de que se aplique cualquier 
-# estímulo. El objetivo del algoritmo genético es encontrar los parámetros 
-# (las "reglas" de interacción genética) que, partiendo de este estado basal, lleven 
-# a la célula a un estado final deseado (el target ).
-# Evitar Singularidades Matemáticas : Desde un punto de vista computacional, empezar 
-# con concentraciones exactamente en cero puede, en algunos modelos, llevar a resultados 
-# triviales (si no hay nada, nada cambia) o a inestabilidades numéricas en el solver 
-# de las ecuaciones diferenciales. Empezar con un valor pequeño y positivo asegura que 
-# el sistema pueda "arrancar" y evolucionar.
-# En resumen, [0.1, 0.1, 0.1] es una suposición plausible para un estado celular no 
-# estimulado, donde los factores de interés están presentes en pequeñas cantidades, 
-# pero están listos para responder a las interacciones que el algoritmo genético descubrirá.
-
 
 # --- Parámetros de la función de fitness ---
 FITNESS_PENALTY_FACTOR = 0.001  # Factor para la penalización por complejidad
@@ -62,7 +42,7 @@ class ToyODEEvaluator:
     descrito por las EDOs y lo compara con un resultado deseado para calcular
     un valor de 'fitness' o 'aptitud'.
     """
-    def __init__(self, target=None, bounds=None, t_span=(0, 50), dt=0.5, noise_std=0.0):
+    def __init__(self, config: Dict):
         """Inicializa el evaluador.
 
         Args:
@@ -75,11 +55,12 @@ class ToyODEEvaluator:
             noise_std (float): La desviación estándar del ruido que se puede añadir a los
             datos simulados para hacer el modelo más realista. Defaults to 0.0.
         """
-        self.t_span = t_span
-        self.dt = dt
-        self.noise_std = noise_std
-        self.target = np.array(target, dtype=float) if target is not None else DEFAULT_TARGET
-        self.bounds = np.array(bounds, dtype=float) if bounds is not None else DEFAULT_BOUNDS
+        self.t_span = config["t_span"]
+        self.dt = config["dt"]
+        self.noise_std = config["noise_std"]
+        self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
+        self.target = np.array(config["target"], dtype=float)
+        self.bounds = np.array(config["bounds"], dtype=float)
 
 
     def _ode_system(self, t, y, p):
@@ -119,7 +100,7 @@ class ToyODEEvaluator:
             tuple: Una tupla conteniendo el estado final del sistema (y_final) y el objeto
                    de la solución completa de la simulación. Si falla, retorna (None, None).
         """
-        y0 = INITIAL_CONDITIONS
+        y0 = self.initial_conditions
         t0, tf = self.t_span
         t_eval = np.arange(t0, tf + self.dt, self.dt) # np.arange(inicio, fin, paso) son los puntos temporales
         try:
@@ -131,7 +112,7 @@ class ToyODEEvaluator:
             if self.noise_std > 0:
                 y_final = y_final + np.random.normal(0, self.noise_std, size=y_final.shape)
             return y_final, solution
-        except Exception as e:
+        except Exception:
             # Si la integración numérica falla, se retorna un resultado que indica el fallo.
             return None, None
 
@@ -161,7 +142,7 @@ class ToyODEEvaluator:
                     return REACHED_REWARD_VALUE  # Recompensa que reduce el fitness
         return 0.0
 
-    def evaluate(self, individual, timeout=None):
+    def evaluate(self, individual):
         """Evalúa un individuo y retorna un valor de fitness escalar.
 
         El fitness combina tres componentes:

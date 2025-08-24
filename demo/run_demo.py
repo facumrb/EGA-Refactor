@@ -20,7 +20,7 @@ def load_config(path):
     with open(path, "r") as filehandler:
         config = yaml.safe_load(filehandler)
     return config
-"""
+
 def get_default_config():
     # Retorna la configuración por defecto para la demostración.
     default_bounds = [[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3
@@ -46,7 +46,7 @@ def get_default_config():
         # Otros parámetros
         "snapshot_dir": "snapshots"
     }
-"""
+
 def main():
     """Función principal que ejecuta la demostración."""
     parser = argparse.ArgumentParser()
@@ -55,24 +55,25 @@ def main():
     
     # Cargar configuración desde el archivo y fusionarla con la configuración por defecto
     user_config = load_config(args.config)
-    # config = {**get_default_config(), **user_config}
-    config = { **user_config }
+    config = {**get_default_config(), **user_config}
+    config = {**user_config}    
+
+    # Configuración del Evaluador
+    evaluator_config = {
+        key: config[key] for key in [
+            "target", "bounds", "t_span", "dt", "noise_std", "initial_conditions"
+        ]
+    }
 
     # Instanciar el evaluador con los parámetros de la configuración
-    evaluator = ToyODEEvaluator(
-        target=np.array(config["target"], dtype=float),
-        bounds=np.array(config["bounds"], dtype=float),
-        t_span=tuple(config["t_span"]),
-        dt=config["dt"],
-        noise_std=config["noise_std"]
-    )
+    evaluator = ToyODEEvaluator(evaluator_config)
 
     # Configuración del EGA
     ega_config = {
         key: config[key] for key in [
-            "populationSize", "generations", "crossover_rate", "mutation_rate", 
-            "elite_size", "bounds", "alpha_blx", "mutation_scale", "timeout", 
-            "processes", "seed", "tournament_k"
+            "bounds", "populationSize", "generations", "crossover_rate", "mutation_rate", 
+            "elite_size", "alpha_blx", "mutation_scale", "tournament_k", "timeout", 
+            "processes", "seed", "strategy"
         ]
     }
 
