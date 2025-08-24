@@ -110,6 +110,7 @@ class Individual:
         self.num_params = self.bounds.shape[0] # Número de parámetros
         # .shape[0]: Obtiene la cantidad de filas del array (cada fila = 1 parámetro)
         # self.num_params : Almacena el total de parámetros a optimizar
+        self.trayectory = None
 
         # Inicialización aleatoria dentro de los límites fisiológicos
         # self.bounds[:,1] selecciona la columna de límites superiores.
@@ -144,6 +145,8 @@ class Individual:
         # fitness: Representa la aptitud biológica del individuo
         # Inicialmente se establece en None, ya que el individuo no ha sido evaluado todavía.
         self.fitness = None
+        self.time = None
+        self.trajectory = None
 
     def decode(self):
         """Decodifica al individuo, devolviendo sus parámetros.
@@ -376,11 +379,10 @@ class EGA:
             # en el tiempo total de ejecución.
             # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
             fitness_results, solution_results = zip(*fitness_solution_results)
-            # print("ATENCIÓN:")
-            # print("FITNESS:", fitness_results)
-            # print("SOLUTION:", solution_results)
-            for individual, fitness in zip(eval_needed_individuals, fitness_results):
+            for individual, fitness, solution in zip(eval_needed_individuals, fitness_results, solution_results):
                 individual.fitness = float(fitness) if fitness is not None else float('inf')
+                individual.trajectory = solution.y
+                individual.time = solution.t
                 # Si el fitness es infinito, se asume que la evaluación falló.
                 # En este caso, se asigna un valor alto al fitness para que el individuo sea menos apto.
                 key_for_Dictionary = safe_round_tuple(individual.decode())
