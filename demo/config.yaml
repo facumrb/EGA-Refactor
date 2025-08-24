@@ -115,57 +115,10 @@ snapshot_dir: "snapshots"
 tournament_k: 3 # Valor sugerido: 3
 # Controla presión selectiva. Mayor k aumenta presión selectiva, pero puede reducir diversidad.
 
-# Estrategia de inicialización de la población.
-strategy: "uniform" # o "center"
-# - uniform : Simula variabilidad natural en parámetros bioquímicos
-# - center : Modela condiciones homeostáticas equilibradas
-
-initial_conditions = np.array([0.1, 0.1, 0.1])
-# Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
-# del vector representa una concentración inicial, baja pero no nula, de los tres 
-# factores de transcripción (o proteínas) en el modelo. Biológicamente, es muy 
-# raro que la concentración de una proteína sea absolutamente cero. Las células 
-# suelen tener un nivel de "fugas" o expresión basal de muchos genes.
-# Punto de Partida para la Reprogramación : En el contexto de la reprogramación 
-# celular (que es lo que este modelo simula de forma abstracta), estas condiciones 
-# iniciales representan el estado de una célula antes de que se aplique cualquier 
-# estímulo. El objetivo del algoritmo genético es encontrar los parámetros 
-# (las "reglas" de interacción genética) que, partiendo de este estado basal, lleven 
-# a la célula a un estado final deseado (el target ).
-# Evitar Singularidades Matemáticas : Desde un punto de vista computacional, empezar 
-# con concentraciones exactamente en cero puede, en algunos modelos, llevar a resultados 
-# triviales (si no hay nada, nada cambia) o a inestabilidades numéricas en el solver 
-# de las ecuaciones diferenciales. Empezar con un valor pequeño y positivo asegura que 
-# el sistema pueda "arrancar" y evolucionar.
-# En resumen, [0.1, 0.1, 0.1] es una suposición plausible para un estado celular no 
-# estimulado, donde los factores de interés están presentes en pequeñas cantidades, 
-# pero están listos para responder a las interacciones que el algoritmo genético descubrirá.
-
 # Todos los valores están razonados: 
-# balancean exploración, plausibility biológica y coste computacional.
+#balancean exploración, plausibility biológica y coste computacional.
 # Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
 # usadas en otros problemas paramétricos.
-
-fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
-# Penalización por complejidad : Esta constante, FITNESS_PENALTY_FACTOR, se utiliza para multiplicar 
-# la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
-# al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
-# complejas) cuando es posible.
-
-# Opción futura para la definición de FITNESS_PENALTY_FACTOR: Autoadaptación (Self-Adaptation)
-#Este es el enfoque más avanzado y biológicamente inspirado de todos. 
-# En lugar de tener una regla externa que dicte el valor del factor de penalización, 
-# el propio valor se codifica en el genoma de cada individuo.
-# ¿Cómo funciona?:
-# 1. Cada individuo en la población ya no tendría 9 parámetros, sino 10.
-# 2. Los primeros 9 serían los parámetros del modelo, como ahora.
-# 3. El décimo parámetro sería el fitness_penalty_factor personal de ese individuo.
-# 4. Este décimo parámetro también estaría sujeto a mutación y cruce.
-# Ventajas: El algoritmo evolutivo aprende simultáneamente la solución al problema y el mejor 
-# valor de fitness_penalty_factor para ese problema. Es el sistema más flexible y potente.
-# Desventajas: Muy complejo de implementar correctamente. Puede hacer que la convergencia sea 
-# más lenta o inestable si no se diseña con cuidado.
-
 
 # Parámetros ajustados para 1 hora y 20 minutos
 # populationSize: 50

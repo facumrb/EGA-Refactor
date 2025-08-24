@@ -20,7 +20,7 @@ def load_config(path):
     with open(path, "r") as filehandler:
         config = yaml.safe_load(filehandler)
     return config
-
+"""
 def get_default_config():
     # Retorna la configuración por defecto para la demostración.
     default_bounds = [[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3
@@ -43,11 +43,10 @@ def get_default_config():
         "processes": max(1, os.cpu_count() - 1),
         "seed": 42,
         "tournament_k": 3,
-        "fitness_penalty_factor": 0.001,
         # Otros parámetros
         "snapshot_dir": "snapshots"
     }
-
+"""
 def main():
     """Función principal que ejecuta la demostración."""
     parser = argparse.ArgumentParser()
@@ -65,9 +64,7 @@ def main():
         bounds=np.array(config["bounds"], dtype=float),
         t_span=tuple(config["t_span"]),
         dt=config["dt"],
-        noise_std=config["noise_std"],
-        fitness_penalty_factor=config["fitness_penalty_factor"],
-        initial_conditions=np.array(config["initial_conditions"], dtype=float)
+        noise_std=config["noise_std"]
     )
 
     # Configuración del EGA
