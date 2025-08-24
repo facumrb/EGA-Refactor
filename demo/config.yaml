@@ -83,6 +83,13 @@ strategy: "uniform" # o "center"
 # - uniform : Simula variabilidad natural en parámetros bioquímicos
 # - center : Modela condiciones homeostáticas equilibradas
 
+# --- Parámetros para análisis post-simulación ---
+
+spaghetti_plot:
+  enabled: true
+  num_simulations: 50 # Número de simulaciones con ruido a ejecutar
+  noise_std_factor: 0.5 # Factor para escalar el ruido (1.0 = usar el original)
+
 # --- Parámetros del Evaluador (Modelo ODE) ---
 
 # Intervalo de tiempo para la simulación de la Ecuación Diferencial Ordinaria (ODE). Formato: [inicio, fin].
@@ -95,7 +102,7 @@ dt: 0.5 # Valor sugerido: 0.5 para estabilidad numérica y eficiencia computacio
 # Debe ser lo suficientemente grande para reducir el costo computacional.
 
 # Desviación estándar del ruido a añadir en la simulación (si se desea).
-noise_std: 0.0 # Valor sugerido: 0.0 (0 ruido) para demo
+noise_std: 0.05 # Valor sugerido: 0.0 (0 ruido) para demo
 # Puede subir a 0.05 si deseás robustez fenotípica.
 
 # Objetivo: valores que se esperan alcanzar en la simulación.

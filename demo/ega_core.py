@@ -586,6 +586,25 @@ class EGA:
                 print(f"[Gen {gen}] min={snapshot['min']:.6g}; avg={snapshot['avg']:.6g}; time={self.history['gen_time'][-1]:.2f}s")
 
         total_time = time.time() - t0
+
+        best_individual = self.population[0]
+
+        # --- Spaghetti Plot Simulation ---
+        spaghetti_config = self.config.get("spaghetti_plot", {})
+        if spaghetti_config.get("enabled", False):
+            num_simulations = spaghetti_config.get("num_simulations", 50)
+            noise_std_factor = spaghetti_config.get("noise_std_factor", 0.5)
+            original_noise_std = self.evaluator.noise_std
+            self.evaluator.noise_std *= noise_std_factor
+
+            spaghetti_results = []
+            for _ in range(num_simulations):
+                _, solution = self.evaluator.simulate(best_individual.params)
+                if solution:
+                    spaghetti_results.append(solution.y.tolist())
+            
+            self.evaluator.noise_std = original_noise_std # Restaurar
+
         # final save
         final = {
             "history": self.history,
@@ -596,6 +615,8 @@ class EGA:
             "config": self.config,
             "total_time_s": total_time
         }
+        if 'spaghetti_results' in locals():
+            final["spaghetti_results"] = spaghetti_results
         with open(os.path.join(snapshot_dir, "final_result.json"), "w") as fh:
             json.dump(final, fh, indent=2)
         # close pool
