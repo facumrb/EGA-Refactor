@@ -89,7 +89,7 @@ class ToyODEEvaluator:
         # alrededor del umbral. Biológicamente, esto podría modelar sensibilidades variables en regulaciones genéticas 
         # (ejemplo: transiciones controladas en expresión génica según niveles críticos de concentración).
         def sigmoid(x, k=1.0, threshold=1.0):
-            return 1.0 / (1.0 + np.exp(-x * (-k - threshold)))
+            return 1.0 / (1.0 + np.exp(-k * (x - threshold)))
         # Cálculo de actividad total de la red genética
         S = np.sum(y)
         # Activación no lineal
@@ -168,7 +168,9 @@ class ToyODEEvaluator:
             solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0,
                                     t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA", 
                                     dense_output=True)
-            
+            if solution.status != 0:
+                print(f"Error en la simulación (por solution): {solution.message}")
+                return None, None
             # 3. Extraer el estado final del sistema.
             # solution.y es la matriz de resultados. [:, -1] es una forma de seleccionar
             # de todas las filas (:) la última columna (-1). 
@@ -269,7 +271,8 @@ class ToyODEEvaluator:
 
         # validaciones básicas
         if self.bounds is None or individual.shape[0] != self.bounds.shape[0]:
-            return float(self.high_fitness_penalty), None
+            print("Error: bounds no están definidos o no coinciden con la longitud del individuo.")
+            return (float(self.high_fitness_penalty), None)
 
         # Soft constraint para bounds en lugar de 'inf'
         bound_violation = np.sum(np.maximum(0, self.bounds[:, 0] - individual) + np.maximum(0, individual - self.bounds[:, 1]))
@@ -285,7 +288,8 @@ class ToyODEEvaluator:
                 return float(self.high_fitness_penalty), None
 
             if y_final is None:
-                return self.high_fitness_penalty + penalty  # Penalización alta pero finita
+                print("Error: y_final es None.")
+                return float(self.high_fitness_penalty + penalty), None  # Penalización alta pero finita
 
             # Cálculo de los componentes del fitness a través de métodos especializados
             L2_distance = self._calculate_L2_distance(y_final)

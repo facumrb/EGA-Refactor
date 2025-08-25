@@ -410,10 +410,11 @@ class EGA:
                     # Se genera una clave única para el genotipo del individuo.
                     self.cache[key_for_Dictionary] = individual.fitness
             except Exception as error:
-                print(f"Una evaluación falló con un error: {error}")
-                for individual in eval_needed_individuals:
+                print(f"[EGA Error] Evaluación fallida: {error}")
+                for i, individual in enumerate(eval_needed_individuals):
                     individual.fitness = float('inf')
-                    # El error se "evita" asignando valores fitness que hacen a los individuos menos aptos. 
+                    key = safe_round_tuple(individual.decode())
+                    self.cache[key] = individual.fitness
         
     def _select_parents(self, tournament_k):
         """Selecciona a los padres para la siguiente generación usando selección por torneo.

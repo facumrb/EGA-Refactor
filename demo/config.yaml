@@ -5,225 +5,243 @@
 # Un error aquí no es un error de sintaxis, sino un error en el diseño experimental, 
 # que puede llevar a resultados sin sentido o a tiempos de cómputo excesivos.
 
+
+# --- Parámetros del Evaluador (Modelo ODE) ---
+evaluator_params:
+  # Objetivo: valores que se esperan alcanzar en la simulación.
+  target: [1.0, 0.8, 0.6] # Valor sugerido: [1.0, 0.8, 0.6]
+  # Vector objetivo de expresión génica final (trayectoria objetivo).
+  # Diseño del evaluador, depende del fenotipo condrogénico simulado.
+  # Cada valor en el array corresponde al nivel de expresión normalizado de un gen clave.
+  # El vector target: [1.0, 0.8, 0.6] representa un perfil idealizado de expresión génica normalizada que define 
+  # computacionalmente el fenotipo de un condrocito maduro y funcional. Cada componente del vector corresponde a un gen 
+  # clave en la condrogénesis, y sus valores indican la intensidad deseada de expresión:
+  # 1.0 → activación total de un gen maestro (ej. SOX9), esencial para iniciar la vía condrogénica.
+  # 0.8 → alta expresión de un gen estructural como COL2A1 (colágeno tipo II), fundamental en la matriz cartilaginosa.
+  # 0.6 → expresión moderada de un gen regulador, posiblemente modulador de diferenciación o estabilidad del fenotipo (RUNX2, ACAN, etc.).
+  # En conjunto, este perfil define el estado celular exacto que se considera un condrocito maduro y funcional.
+
+  # Intervalo de tiempo para la simulación de la Ecuación Diferencial Ordinaria (ODE). Formato: [inicio, fin].
+  t_span: [0, 40] # Valor sugerido: [0, 40]
+  # Configurable; depende del sistema.
+
+  # Paso de tiempo para la simulación.
+  dt: 0.5 # Valor sugerido: 0.5 para estabilidad numérica y eficiencia computacional
+  # Debe ser lo suficientemente pequeño para capturar la dinámica del sistema.
+  # Debe ser lo suficientemente grande para reducir el costo computacional.
+
+  # Desviación estándar del ruido a añadir en la simulación (si se desea).
+  noise_std: 0.05 # Valor sugerido: 0.0 (0 ruido) para demo
+  # Puede subir a 0.05 si deseás robustez fenotípica.
+
+  # Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
+  bounds:
+    - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+    - [0.1, 3.0]    # Grupo 2: Parámetros cinéticos
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+    - [0.1, 3.0]    # Grupo 3: Parámetros metabólicos
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+  # Parámetros fisiológicos :
+  # [0.1, 3.0] → Posibles tasas metabólicas o concentraciones
+  # [0.01, 1.0] → Constantes de afinidad/eficiencia enzimática
+  # [-3.0, 3.0] → Factores regulatorios (activación/inhibición)
+  # Propósito evolutivo :
+  # Mantener soluciones dentro de rangos biológicamente factibles
+  # Prevenir valores absurdos en parámetros bioquímicos
+  # Simular restricciones reales de sistemas biológicos
+
+  # Ejemplo: los primeros tres parámetros de cada grupo son iguales.
+  # Implicación biológica: Esta simetría sugiere que el modelo considera:
+  # - Tres componentes idénticos en el sistema
+  # - Mecanismos regulatorios equivalentes entre subsistemas
+  # - Condiciones homeostáticas equilibradas
+
+  # Fundamental para reparación y validez biológica.
+  # Es parte del diseño del evaluador y contexto del sistema biológico.
+
+  initial_conditions: [0.1, 0.1, 0.1]
+  # Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
+  # del vector representa una concentración inicial, baja pero no nula, de los tres 
+  # factores de transcripción (o proteínas) en el modelo. Biológicamente, es muy 
+  # raro que la concentración de una proteína sea absolutamente cero. Las células 
+  # suelen tener un nivel de "fugas" o expresión basal de muchos genes.
+  # Punto de Partida para la Reprogramación : En el contexto de la reprogramación 
+  # celular (que es lo que este modelo simula de forma abstracta), estas condiciones 
+  # iniciales representan el estado de una célula antes de que se aplique cualquier 
+  # estímulo. El objetivo del algoritmo genético es encontrar los parámetros 
+  # (las "reglas" de interacción genética) que, partiendo de este estado basal, lleven 
+  # a la célula a un estado final deseado (el target ).
+  # Evitar Singularidades Matemáticas : Desde un punto de vista computacional, empezar 
+  # con concentraciones exactamente en cero puede, en algunos modelos, llevar a resultados 
+  # triviales (si no hay nada, nada cambia) o a inestabilidades numéricas en el solver 
+  # de las ecuaciones diferenciales. Empezar con un valor pequeño y positivo asegura que 
+  # el sistema pueda "arrancar" y evolucionar.
+  # En resumen, [0.1, 0.1, 0.1] es una suposición plausible para un estado celular no 
+  # estimulado, donde los factores de interés están presentes en pequeñas cantidades, 
+  # pero están listos para responder a las interacciones que el algoritmo genético descubrirá.
+
+  # Todos los valores están razonados: 
+  # balancean exploración, plausibility biológica y coste computacional.
+  # Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
+  # usadas en otros problemas paramétricos.
+
+  high_fitness_penalty: 1e6
+  # se utiliza como una penalización alta pero finita en lugar de float('inf') (infinito).
+
+  fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
+  # Penalización por complejidad : Esta constante, fitness_penalty_factor, se utiliza para multiplicar 
+  # la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
+  # al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
+  # complejas) cuando es posible.
+  # La mejor aproximación es experimentar. Ejecutar el algoritmo con diferentes valores del factor de 
+  # penalización y analizar los resultados.
+
+  # Opción futura para la definición de fitness_penalty_factor: Autoadaptación (Self-Adaptation)
+  #Este es el enfoque más avanzado y biológicamente inspirado de todos. 
+  # En lugar de tener una regla externa que dicte el valor del factor de penalización, 
+  # el propio valor se codifica en el genoma de cada individuo.
+  # ¿Cómo funciona?:
+  # 1. Cada individuo en la población ya no tendría 9 parámetros, sino 10.
+  # 2. Los primeros 9 serían los parámetros del modelo, como ahora.
+  # 3. El décimo parámetro sería el fitness_penalty_factor personal de ese individuo.
+  # 4. Este décimo parámetro también estaría sujeto a mutación y cruce.
+  # Ventajas: El algoritmo evolutivo aprende simultáneamente la solución al problema y el mejor 
+  # valor de fitness_penalty_factor para ese problema. Es el sistema más flexible y potente.
+  # Desventajas: Muy complejo de implementar correctamente. Puede hacer que la convergencia sea 
+  # más lenta o inestable si no se diseña con cuidado.
+  # Directorio para guardar los "snapshots" JSON (estados intermedios) de cada generación.
+
+  # Todos los valores están razonados: 
+  #balancean exploración, plausibility biológica y coste computacional.
+  # Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
+  # usadas en otros problemas paramétricos.
+
+  # Parámetros ajustados para 1 hora y 20 minutos
+  # populationSize: 50
+  # generations: 80
+  # evaluador: promedio de 1.2 segundos por evaluación
+  # Tiempo estimado: 50 × 80 × 1.2 = 4800 segundos = 1 hora y 20 minutos
+  # Los valores actuales de populationSize y generations de un tiempo estimado total 
+  # de ejecución es de 15 minutos
+
+  min_production_rate: 1e-6
+  min_degradation_rate: 1e-3
+  # En biología, las tasas de producción (transcripción) y degradación (turnover proteico) nunca
+  # son exactamente cero en sistemas vivos; siempre hay un "ruido" basal (e.g., transcripción leaky en promotores
+  # y expresión estocástica en single-cell data). Un mínimo simula esto, previniendo estados irreales
+  # como proteínas inmortales (deg=0) o nula síntesis (prod=0), y modela bursts de expresión en diferenciación celular.
+  # Valores: 1e-6 para prod (bajo pero realista, ~10^-6 moléculas/h en genes reprimidos); 1e-3 para deg
+  # (vida media ~10-100h, como en factores como SOX9). Se elige pequeño para no sesgar el modelo,
+  # pero lo suficientemente grande para evitar artefactos numéricos en ODE.
+  # En redes genéticas, tasas cero romperían homeostasis; esto fuerza dinámica mínima, como en modelos de circuitos genéticos.
+
 # --- Parámetros del Algoritmo Genético ---
 
-# Tamaño de la población: número de individuos en cada generación.
-populationSize: 30 # Valor sugerido: 40–60
-# Debe ser lo suficientemente grande para explorar diversidad, 
-# pero limitado por el costo computacional del evaluador ODE.
+ega_params:
+  # Tamaño de la población: número de individuos en cada generación.
+  populationSize: 30 # Valor sugerido: 40–60
+  # Debe ser lo suficientemente grande para explorar diversidad, 
+  # pero limitado por el costo computacional del evaluador ODE.
 
-# Número de generaciones: cuántas iteraciones ejecutará el algoritmo.
-generations: 25 # Valor sugerido: 40–100
-# Debe permitir convergencia razonable con el budget computacional.
+  # Número de generaciones: cuántas iteraciones ejecutará el algoritmo.
+  generations: 4 # Valor sugerido: 40–100 (predet: 25)
+  # Debe permitir convergencia razonable con el budget computacional.
 
-# Tasa de cruzamiento: probabilidad de que dos padres se crucen para crear descendencia.
-crossover_rate: 0.8 # Valor sugerido: 0.7–0.9
-# Mantener alto para recombinación eficiente.
+  # Tasa de cruzamiento: probabilidad de que dos padres se crucen para crear descendencia.
+  crossover_rate: 0.8 # Valor sugerido: 0.7–0.9
+  # Mantener alto para recombinación eficiente.
 
-# Tasa de mutación: probabilidad de que un gen de un individuo mute.
-mutation_rate: 0.15 # Valor sugerido: 0.1–0.2
-# Probabilidad por gen de mutación gaussiana. 
-# Crucial para mantener exploración y evitar convergencia prematura.
+  # Tasa de mutación: probabilidad de que un gen de un individuo mute.
+  mutation_rate: 0.15 # Valor sugerido: 0.1–0.2
+  # Probabilidad por gen de mutación gaussiana. 
+  # Crucial para mantener exploración y evitar convergencia prematura.
 
-# Tamaño de la élite: número de los mejores individuos que pasan directamente a la siguiente generación.
-elite_size: 3 # Valor sugerido: 1–5
+  # Tamaño de la élite: número de los mejores individuos que pasan directamente a la siguiente generación.
+  elite_size: 3 # Valor sugerido: 1–5
 
-# Parámetro alfa para el cruzamiento BLX-alpha. Controla la dispersión de la descendencia.
-alpha_blx: 0.15 # Valor sugerido: 0.1–0.3 (comúnmente ~0.1–0.15)
+  # Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
+  bounds:
+    - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+    - [0.1, 3.0]    # Grupo 2: Parámetros cinéticos
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+    - [0.1, 3.0]    # Grupo 3: Parámetros metabólicos
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+  # Parámetros fisiológicos :
+  # [0.1, 3.0] → Posibles tasas metabólicas o concentraciones
+  # [0.01, 1.0] → Constantes de afinidad/eficiencia enzimática
+  # [-3.0, 3.0] → Factores regulatorios (activación/inhibición)
+  # Propósito evolutivo :
+  # Mantener soluciones dentro de rangos biológicamente factibles
+  # Prevenir valores absurdos en parámetros bioquímicos
+  # Simular restricciones reales de sistemas biológicos
 
-# Escala de la mutación: desviación estándar para la mutación gaussiana, por cada parámetro.
-mutation_scale: [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]
-# Valor sugerido: 0.05 para parámetros sensibles; por ejemplo [0.05, 0.05, 0.2, ...]
-# Basado en rango (x_max − x_min)/6 es estándar para continous domains.
+  # Ejemplo: los primeros tres parámetros de cada grupo son iguales.
+  # Implicación biológica: Esta simetría sugiere que el modelo considera:
+  # - Tres componentes idénticos en el sistema
+  # - Mecanismos regulatorios equivalentes entre subsistemas
+  # - Condiciones homeostáticas equilibradas
 
-# Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
-bounds:
-  - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
-  - [0.01, 1.0]
-  - [-3.0, 3.0]
-  - [0.1, 3.0]    # Grupo 2: Parámetros cinéticos
-  - [0.01, 1.0]
-  - [-3.0, 3.0]
-  - [0.1, 3.0]    # Grupo 3: Parámetros metabólicos
-  - [0.01, 1.0]
-  - [-3.0, 3.0]
-# Parámetros fisiológicos :
-# [0.1, 3.0] → Posibles tasas metabólicas o concentraciones
-# [0.01, 1.0] → Constantes de afinidad/eficiencia enzimática
-# [-3.0, 3.0] → Factores regulatorios (activación/inhibición)
-# Propósito evolutivo :
-# Mantener soluciones dentro de rangos biológicamente factibles
-# Prevenir valores absurdos en parámetros bioquímicos
-# Simular restricciones reales de sistemas biológicos
+  # Fundamental para reparación y validez biológica.
+  # Es parte del diseño del evaluador y contexto del sistema biológico.
 
-# Ejemplo: los primeros tres parámetros de cada grupo son iguales.
-# Implicación biológica: Esta simetría sugiere que el modelo considera:
-# - Tres componentes idénticos en el sistema
-# - Mecanismos regulatorios equivalentes entre subsistemas
-# - Condiciones homeostáticas equilibradas
+  # Parámetro alfa para el cruzamiento BLX-alpha. Controla la dispersión de la descendencia.
+  alpha_blx: 0.15 # Valor sugerido: 0.1–0.3 (comúnmente ~0.1–0.15)
 
-# Fundamental para reparación y validez biológica.
-# Es parte del diseño del evaluador y contexto del sistema biológico.
+  # Escala de la mutación: desviación estándar para la mutación gaussiana, por cada parámetro.
+  mutation_scale: [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]
+  # Valor sugerido: 0.05 para parámetros sensibles; por ejemplo [0.05, 0.05, 0.2, ...]
+  # Basado en rango (x_max − x_min)/6 es estándar para continous domains.
 
-# --- Parámetros de Evaluación y Ejecución ---
+  # --- Parámetros de Evaluación y Ejecución ---
 
-# Configuración para el ajuste dinámico del timeout de evaluación.
-# Si la tasa de fallos supera este umbral, se incrementará el timeout.
-failure_rate_threshold_increase: 0.3
-# Si la tasa de fallos es menor a este umbral, se reducirá el timeout.
-failure_rate_threshold_decrease: 0.05
-# Factor por el cual se multiplicará el timeout al aumentarlo (ej. 2.0 para duplicar).
-timeout_increase_factor: 2.0
-# Factor por el cual se multiplicará el timeout al reducirlo (ej. 0.9 para reducir un 10%).
-timeout_decrease_factor: 0.9
+  # Configuración para el ajuste dinámico del timeout de evaluación.
+  # Si la tasa de fallos supera este umbral, se incrementará el timeout.
+  failure_rate_threshold_increase: 0.3
+  # Si la tasa de fallos es menor a este umbral, se reducirá el timeout.
+  failure_rate_threshold_decrease: 0.05
+  # Factor por el cual se multiplicará el timeout al aumentarlo (ej. 2.0 para duplicar).
+  timeout_increase_factor: 2.0
+  # Factor por el cual se multiplicará el timeout al reducirlo (ej. 0.9 para reducir un 10%).
+  timeout_decrease_factor: 0.9
 
-# Tiempos de espera para la evaluación de un individuo (mínimo y máximo).
-base_timeout: 25.0
-max_timeout: 60000.0
+  # Tiempos de espera para la evaluación de un individuo (mínimo y máximo).
+  base_timeout: 25.0
+  max_timeout: 60000.0
 
-# Tiempo máximo de espera (en segundos) para la evaluación de un solo individuo.
-timeout: 25.0 # Valor sugerido: 15–30 s
-# Es práctica recomendada en supervisión de evaluadores pesados.
+  # Tiempo máximo de espera (en segundos) para la evaluación de un solo individuo.
+  timeout: 25.0 # Valor sugerido: 15–30 s
+  # Es práctica recomendada en supervisión de evaluadores pesados.
 
-# Número de procesos a utilizar para evaluar la población en paralelo.
-processes: 7 # Valor sugerido: max(1, cpu_count() − 1)
-# Mejores prácticas de multiprocessing en Python; evitar saturar memoria.
+  # Número de procesos a utilizar para evaluar la población en paralelo.
+  processes: 7 # Valor sugerido: max(1, cpu_count() − 1)
+  # Mejores prácticas de multiprocessing en Python; evitar saturar memoria.
 
-# Semilla para la generación de números aleatorios, para resultados reproducibles.
-seed: 42 # Valor sugerido: cualquier entero
-# Estándar en experimentación reproducible; mencionado en estudio sobre init.
+  # Semilla para la generación de números aleatorios, para resultados reproducibles.
+  seed: 42 # Valor sugerido: cualquier entero
+  # Estándar en experimentación reproducible; mencionado en estudio sobre init.
 
-strategy: "uniform" # o "center"
-# - uniform : Simula variabilidad natural en parámetros bioquímicos
-# - center : Modela condiciones homeostáticas equilibradas
+  # Número de participantes en la selección por torneo.
+  tournament_k: 3 # Valor sugerido: 3
+  # Controla presión selectiva. Mayor k aumenta presión selectiva, pero puede reducir diversidad.
+
+  strategy: "uniform" # o "center"
+  # - uniform : Simula variabilidad natural en parámetros bioquímicos
+  # - center : Modela condiciones homeostáticas equilibradas
 
 # --- Parámetros para análisis post-simulación ---
 
 spaghetti_plot:
-  enabled: true
+  enabled: True
   num_simulations: 50 # Número de simulaciones con ruido a ejecutar
   noise_std_factor: 0.5 # Factor para escalar el ruido (1.0 = usar el original)
 
-# --- Parámetros del Evaluador (Modelo ODE) ---
-
-# Intervalo de tiempo para la simulación de la Ecuación Diferencial Ordinaria (ODE). Formato: [inicio, fin].
-t_span: [0, 40] # Valor sugerido: [0, 40]
-# Configurable; depende del sistema.
-
-# Paso de tiempo para la simulación.
-dt: 0.5 # Valor sugerido: 0.5 para estabilidad numérica y eficiencia computacional
-# Debe ser lo suficientemente pequeño para capturar la dinámica del sistema.
-# Debe ser lo suficientemente grande para reducir el costo computacional.
-
-# Desviación estándar del ruido a añadir en la simulación (si se desea).
-noise_std: 0.05 # Valor sugerido: 0.0 (0 ruido) para demo
-# Puede subir a 0.05 si deseás robustez fenotípica.
-
-# Objetivo: valores que se esperan alcanzar en la simulación.
-target: [1.0, 0.8, 0.6] # Valor sugerido: [1.0, 0.8, 0.6]
-# Vector objetivo de expresión génica final (trayectoria objetivo).
-# Diseño del evaluador, depende del fenotipo condrogénico simulado.
-# Cada valor en el array corresponde al nivel de expresión normalizado de un gen clave.
-# El vector target: [1.0, 0.8, 0.6] representa un perfil idealizado de expresión génica normalizada que define 
-# computacionalmente el fenotipo de un condrocito maduro y funcional. Cada componente del vector corresponde a un gen 
-# clave en la condrogénesis, y sus valores indican la intensidad deseada de expresión:
-# 1.0 → activación total de un gen maestro (ej. SOX9), esencial para iniciar la vía condrogénica.
-# 0.8 → alta expresión de un gen estructural como COL2A1 (colágeno tipo II), fundamental en la matriz cartilaginosa.
-# 0.6 → expresión moderada de un gen regulador, posiblemente modulador de diferenciación o estabilidad del fenotipo (RUNX2, ACAN, etc.).
-# En conjunto, este perfil define el estado celular exacto que se considera un condrocito maduro y funcional.
-
-# Directorio para guardar los "snapshots" JSON (estados intermedios) de cada generación.
 snapshot_dir: "snapshots"
 # JSON para facilitar análisis posterior y reproducibilidad.
-
-# Número de participantes en la selección por torneo.
-tournament_k: 3 # Valor sugerido: 3
-# Controla presión selectiva. Mayor k aumenta presión selectiva, pero puede reducir diversidad.
-
-# Estrategia de inicialización de la población.
-strategy: "uniform" # o "center"
-# - uniform : Simula variabilidad natural en parámetros bioquímicos
-# - center : Modela condiciones homeostáticas equilibradas
-
-initial_conditions: [0.1, 0.1, 0.1]
-# Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
-# del vector representa una concentración inicial, baja pero no nula, de los tres 
-# factores de transcripción (o proteínas) en el modelo. Biológicamente, es muy 
-# raro que la concentración de una proteína sea absolutamente cero. Las células 
-# suelen tener un nivel de "fugas" o expresión basal de muchos genes.
-# Punto de Partida para la Reprogramación : En el contexto de la reprogramación 
-# celular (que es lo que este modelo simula de forma abstracta), estas condiciones 
-# iniciales representan el estado de una célula antes de que se aplique cualquier 
-# estímulo. El objetivo del algoritmo genético es encontrar los parámetros 
-# (las "reglas" de interacción genética) que, partiendo de este estado basal, lleven 
-# a la célula a un estado final deseado (el target ).
-# Evitar Singularidades Matemáticas : Desde un punto de vista computacional, empezar 
-# con concentraciones exactamente en cero puede, en algunos modelos, llevar a resultados 
-# triviales (si no hay nada, nada cambia) o a inestabilidades numéricas en el solver 
-# de las ecuaciones diferenciales. Empezar con un valor pequeño y positivo asegura que 
-# el sistema pueda "arrancar" y evolucionar.
-# En resumen, [0.1, 0.1, 0.1] es una suposición plausible para un estado celular no 
-# estimulado, donde los factores de interés están presentes en pequeñas cantidades, 
-# pero están listos para responder a las interacciones que el algoritmo genético descubrirá.
-
-# Todos los valores están razonados: 
-# balancean exploración, plausibility biológica y coste computacional.
-# Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
-# usadas en otros problemas paramétricos.
-
-min_production_rate: 1e-6
-min_degradation_rate: 1e-3
-# En biología, las tasas de producción (transcripción) y degradación (turnover proteico) nunca
-# son exactamente cero en sistemas vivos; siempre hay un "ruido" basal (e.g., transcripción leaky en promotores
-# y expresión estocástica en single-cell data). Un mínimo simula esto, previniendo estados irreales
-# como proteínas inmortales (deg=0) o nula síntesis (prod=0), y modela bursts de expresión en diferenciación celular.
-# Valores: 1e-6 para prod (bajo pero realista, ~10^-6 moléculas/h en genes reprimidos); 1e-3 para deg
-# (vida media ~10-100h, como en factores como SOX9). Se elige pequeño para no sesgar el modelo,
-# pero lo suficientemente grande para evitar artefactos numéricos en ODE.
-# En redes genéticas, tasas cero romperían homeostasis; esto fuerza dinámica mínima, como en modelos de circuitos genéticos.
-
-high_fitness_penalty: 1e6
-# se utiliza como una penalización alta pero finita en lugar de float('inf') (infinito).
-
-fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
-# Penalización por complejidad : Esta constante, fitness_penalty_factor, se utiliza para multiplicar 
-# la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
-# al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
-# complejas) cuando es posible.
-# La mejor aproximación es experimentar. Ejecutar el algoritmo con diferentes valores del factor de 
-# penalización y analizar los resultados.
-
-# Opción futura para la definición de fitness_penalty_factor: Autoadaptación (Self-Adaptation)
-#Este es el enfoque más avanzado y biológicamente inspirado de todos. 
-# En lugar de tener una regla externa que dicte el valor del factor de penalización, 
-# el propio valor se codifica en el genoma de cada individuo.
-# ¿Cómo funciona?:
-# 1. Cada individuo en la población ya no tendría 9 parámetros, sino 10.
-# 2. Los primeros 9 serían los parámetros del modelo, como ahora.
-# 3. El décimo parámetro sería el fitness_penalty_factor personal de ese individuo.
-# 4. Este décimo parámetro también estaría sujeto a mutación y cruce.
-# Ventajas: El algoritmo evolutivo aprende simultáneamente la solución al problema y el mejor 
-# valor de fitness_penalty_factor para ese problema. Es el sistema más flexible y potente.
-# Desventajas: Muy complejo de implementar correctamente. Puede hacer que la convergencia sea 
-# más lenta o inestable si no se diseña con cuidado.
-# Directorio para guardar los "snapshots" JSON (estados intermedios) de cada generación.
-
-snapshot_dir: "snapshots"
-# JSON para facilitar análisis posterior y reproducibilidad.
-
-# Número de participantes en la selección por torneo.
-tournament_k: 3 # Valor sugerido: 3
-# Controla presión selectiva. Mayor k aumenta presión selectiva, pero puede reducir diversidad.
-
-# Todos los valores están razonados: 
-#balancean exploración, plausibility biológica y coste computacional.
-# Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
-# usadas en otros problemas paramétricos.
-
-# Parámetros ajustados para 1 hora y 20 minutos
-# populationSize: 50
-# generations: 80
-# evaluador: promedio de 1.2 segundos por evaluación
-# Tiempo estimado: 50 × 80 × 1.2 = 4800 segundos = 1 hora y 20 minutos
-# Los valores actuales de populationSize y generations de un tiempo estimado total 
-# de ejecución es de 15 minutos
