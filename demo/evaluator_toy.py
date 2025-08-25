@@ -176,9 +176,6 @@ class ToyODEEvaluator:
 
         # Cálculo de los componentes del fitness a través de métodos especializados
         L2_distance = self._calculate_L2_distance(y_final)
-        # VER RECOMPENZA PROPORCIONAL AL TIEMPO
-        # Hacer la recompensa inversamente proporcional al tiempo de la simulación en que se alcanza. 
-        # Es decir, cuanto antes se llegue, mayor es la recompensa (menor el valor de fitness).
         complexity_penalty = self._calculate_complexity_penalty(individual)
         reached_reward = self._calculate_reached_reward(solution)
 
