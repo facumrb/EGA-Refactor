@@ -50,11 +50,10 @@ def get_default_config():
         "processes": max(1, os.cpu_count() - 1),
         "seed": 42,
         "tournament_k": 3,
-        "fitness_penalty_factor": 0.001,
-        "high_fitness_penalty": 1e6,
         "initial_conditions": [0.1, 0.1, 0.1],
-        "min_production_rate": 1e-6, 
-        "min_degradation_rate": 1e-3,
+        "fitness_penalty_factor": 0.001,
+        "strategy": "uniform",
+        "high_fitness_penalty": 1e6,
         # Otros parámetros
         "snapshot_dir": "snapshots"
     }
@@ -84,15 +83,14 @@ def main():
     # Cargar configuración desde el archivo y fusionarla con la configuración por defecto
     user_config = load_config(args.config)
     default_config = get_default_config()
-    validate_config(user_config, default_config)
     config = {**default_config, **user_config}
+    validate_config(user_config, default_config)
 
-    # Parámetros del evaluador
+    # Configuración del Evaluador
     evaluator_config = {
         key: config[key] for key in [
-            "target", "bounds", "t_span", "dt", "noise_std", 
-            "fitness_penalty_factor", "high_fitness_penalty", "initial_conditions",
-            "min_production_rate", "min_degradation_rate", "seed", "timeout"
+            "target", "bounds", "t_span", "dt", "noise_std", "initial_conditions",
+            "fitness_penalty_factor", "high_fitness_penalty",
         ]
     }
 
@@ -105,8 +103,8 @@ def main():
             "populationSize", "generations", "crossover_rate", "mutation_rate", 
             "elite_size", "bounds", "alpha_blx", "mutation_scale", "timeout", 
             "base_timeout", "max_timeout", "failure_rate_threshold_increase", "failure_rate_threshold_decrease",
-            "timeout_increase_factor", "timeout_decrease_factor", "processes", "seed", "tournament_k", 
-            "high_fitness_penalty"
+            "timeout_increase_factor", "timeout_decrease_factor", "processes", "seed", "tournament_k",
+            "strategy"
         ]
     }
 

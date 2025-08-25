@@ -11,9 +11,8 @@ Características Principales:
 - Cruzamiento: Utiliza el método BLX-alpha, adecuado para variables continuas (números reales).
 - Mutación: Aplica una mutación gaussiana adaptativa.
 - Elitismo: Conserva a los 'K' mejores individuos de una generación a la siguiente sin cambios.
-- Evaluación Paralela: Usa un "pool" de procesos Pebble para evaluar a los individuos simultáneamente, 
-  lo que acelera el cálculo. Incluye un tiempo máximo (timeout) por evaluación y maneja 
-  elegantemente los fallos en la evaluación.
+- Evaluación Paralela: Usa un "pool" de procesos para evaluar a los individuos simultáneamente, 
+  lo que acelera el cálculo. Incluye un tiempo máximo (timeout) por evaluación.
 - Caché de Evaluaciones: Almacena los resultados de evaluaciones ya realizadas para no repetir cálculos.
 - Snapshots: Guarda el estado del algoritmo (en formato JSON) en cada generación para poder analizar su progreso.
 """
@@ -24,10 +23,9 @@ import time
 import random
 import math
 import numpy as np
-from multiprocessing import cpu_count
-import pebble
-from functools import partial
-from typing import Callable, Dict
+from multiprocessing import Pool, cpu_count
+from typing import Dict
+from evaluator_toy import ToyODEEvaluator
 
 # -----------------------
 # Utilidades / configuración
@@ -113,7 +111,7 @@ class Individual:
         self.num_params = self.bounds.shape[0] # Número de parámetros
         # .shape[0]: Obtiene la cantidad de filas del array (cada fila = 1 parámetro)
         # self.num_params : Almacena el total de parámetros a optimizar
-        
+
         # Inicialización aleatoria dentro de los límites fisiológicos
         # self.bounds[:,1] selecciona la columna de límites superiores.
         # self.bounds[:,0] selecciona la columna de límites inferiores.
@@ -147,6 +145,8 @@ class Individual:
         # fitness: Representa la aptitud biológica del individuo
         # Inicialmente se establece en None, ya que el individuo no ha sido evaluado todavía.
         self.fitness = None
+        self.time = None
+        self.trajectory = None
 
     def decode(self):
         """Decodifica al individuo, devolviendo sus parámetros.
@@ -326,6 +326,7 @@ class EGA:
 
         self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
         self.seed = int(config.get("seed", 42))
+        self.strategy = config.get("strategy")
         random.seed(self.seed)
         np.random.seed(self.seed)
         self.high_fitness_penalty = float(config.get("high_fitness_penalty", 1e6))
@@ -335,12 +336,19 @@ class EGA:
         self.population = [Individual(self.bounds, self.strategy) for _ in range(self.pop_size)]
 
         self.history = {"min": [], "avg": [], "gen_time": []}
+        # Pool
+        self.pool = Pool(processes=self.processes, initializer=init_worker, initargs=(self.seed,))
+        # El sistema operativo lanza un número de procesos Python nuevos ( self.processes ). 
+        # Cada uno de estos procesos es un "trabajador" casi idéntico al proceso principal.
+        # init_worker configura semillas aleatorias. initargs es una tupla con los argumentos
+        # que se pasarán a init_worker. En este caso, la semilla. La coma en (self.seed,) 
+        # es necesaria para crear tupla de un solo elemento.
 
     def _evaluate_population(self, population_to_eval=None):
         """
         Evalúa una lista de individuos. Si no se especifica, evalúa la población entera.
-        Usa pebble.ProcessPool para enviar a cada individuo a un núcleo de CPU diferente 
-        para ser evaluado por el evaluator_toy.py. Incluye manejo de timeouts y errores.
+        Usa multiprocessing.Pool para enviar a cada individuo a un núcleo de CPU diferente 
+        para ser evaluado por el evaluator_toy.py. 
         Esto acelera drásticamente el proceso, que es el cuello de botella computacional.
         Args:
             population_to_eval (List[Individual], optional): La población a evaluar. Si no se 
@@ -382,77 +390,31 @@ class EGA:
         fitness_results = []
         if tasks_for_evaluator:
             # Ejecuta las evaluaciones en paralelo usando el wrapper
+            # Ejecuta las evaluaciones en paralelo usando el wrapper
             try:
-                # Utiliza pebble para paralelizar las evaluaciones.
-                # El wrapper _evaluator_wrapper se encarga de llamar al evaluator_toy.py, para que 
-                # el evaluator_toy.py reciba los parámetros del individuo y devuelva el fitness.
-                # El wrapper _evaluator_wrapper se encarga de manejar los timeouts y los errores.
-                with pebble.ProcessPool(max_workers=self.processes, initializer=init_worker, initargs=(self.seed,)) as pool:
-                    # pool.map aplica la función _evaluator_wrapper a cada elemento en tasks_for_evaluator 
-                    # Devuelve un objeto future que representa las computaciones asincrónicas. 
-                    # timeout=self.timeout establece un límite de tiempo por tarea; si una excede, se lanza TimeoutError.
-                    future = pool.map(_evaluator_wrapper, tasks_for_evaluator, timeout=self.timeout)
-                    iterator = future.result()
-                    # future.result() devuelve un iterador sobre los resultados de las tareas mapeadas. Este iterador permite 
-                    # acceder a los resultados uno por uno a medida que se completan, en lugar de esperar a todos.
-                    while True:
-                        try:
-                            # next(iterator) obtiene el siguiente resultado de la evaluación asincrónica.
-                            # Si no hay más resultados, se lanza StopIteration.
-                            result = next(iterator)
-                            fitness_results.append(result)
-
-                        except StopIteration:
-                            break # Se completaron todas las evaluaciones
-                        except TimeoutError:
-                            if self.previous_avg_fitness is not None:
-                                estimated = self.previous_avg_fitness + 1000  # Penalización
-                            else:
-                                estimated = self.high_fitness_penalty
-                            fitness_results.append(estimated)
-                            # Esta evaluación específica excedió el tiempo límite, se le asigna un fitness pobre.
-                        
-                        except Exception:
-                            # La evaluación falló por otra razón, se le asigna un fitness pobre.
-                            fitness_results.append(self.high_fitness_penalty)
+                async_fitness_solution = self.pool.map_async(_evaluator_wrapper, tasks_for_evaluator)
+                fitness_solution_results = async_fitness_solution.get(timeout=self.timeout)
+                # Es un cuello de botella:
+                # es donde el programa pasa la mayor parte del tiempo. 
+                # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
+                # en el tiempo total de ejecución.
+                # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
+                fitness_results, solution_results = zip(*fitness_solution_results)
+                for individual, fitness, solution in zip(eval_needed_individuals, fitness_results, solution_results):
+                    individual.fitness = float(fitness) if fitness is not None else float('inf')
+                    individual.trajectory = solution.y
+                    individual.time = solution.t
+                    # Si el fitness es infinito, se asume que la evaluación falló.
+                    # En este caso, se asigna un valor alto al fitness para que el individuo sea menos apto.
+                    key_for_Dictionary = safe_round_tuple(individual.decode())
+                    # Se genera una clave única para el genotipo del individuo.
+                    self.cache[key_for_Dictionary] = individual.fitness
             except Exception as error:
-                # Error inesperado en la gestión del pool, se asigna fitness pobre a todos.
                 print(f"Una evaluación falló con un error: {error}")
-                fitness_results = [self.high_fitness_penalty] * len(tasks_for_evaluator)
-                # El error se "evita" asignando valores fitness que hacen a los individuos menos aptos. 
-
-        # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
-        for individual, fitness in zip(eval_needed_individuals, fitness_results):
-            individual.fitness = float(fitness) if fitness is not None else self.high_fitness_penalty
-            # Si el fitness es infinito, se asume que la evaluación falló.
-            # En este caso, se asigna un valor alto al fitness para que el individuo sea menos apto.
-            key_for_Dictionary = safe_round_tuple(individual.decode())
-            # Se genera una clave única para el genotipo del individuo.
-            self.cache[key_for_Dictionary] = individual.fitness
-
-        # Lógica de ajuste de timeout adaptativo
-        # Se calcula la tasa de fallos después de que todas las evaluaciones han terminado.
-        num_failures = sum(1 for individual in population_to_eval if individual.fitness is not None and individual.fitness >= self.high_fitness_penalty)
-        if population_to_eval:
-            failure_rate = num_failures / len(population_to_eval)
-        else:
-            failure_rate = 0
-            
-        # Ajuste dinámico del timeout usando parámetros de configuración.
-        if failure_rate > self.failure_rate_threshold_increase:
-            self.timeout = min(self.max_timeout, self.timeout * self.timeout_increase_factor)
-            print(f"High failure rate ({failure_rate:.2%}), increasing timeout to {self.timeout:.2f}s")
-        elif failure_rate < self.failure_rate_threshold_decrease:
-            self.timeout = max(self.base_timeout, self.timeout * self.timeout_decrease_factor)
-
-        # Se actualiza el fitness promedio de la población para la siguiente generación.
-        # Esto se hace una sola vez, usando la población completa y evaluada.
-        finite_fitness = [individual.fitness for individual in population_to_eval 
-                          if individual.fitness is not None and individual.fitness < self.high_fitness_penalty]
+                for individual in eval_needed_individuals:
+                    individual.fitness = float('inf')
+                    # El error se "evita" asignando valores fitness que hacen a los individuos menos aptos. 
         
-        if finite_fitness:
-            self.previous_avg_fitness = np.mean(finite_fitness)
-
     def _select_parents(self, tournament_k):
         """Selecciona a los padres para la siguiente generación usando selección por torneo.
         El torneo  
@@ -647,16 +609,13 @@ class EGA:
 
             # snapshot
             snapshot = {
-                "generation": gen,
-                "timestamp": time.time(),
+                "gen": gen,
+                "min": float(min([p.fitness for p in self.population])),
+                "avg": float(np.mean([p.fitness for p in self.population])),
+                "best_params": self.population[0].params.tolist(),
+                "pop_params": [individual.params.tolist() for individual in self.population],
                 "seed": self.seed,
-                "config": self.config,
-                "population_params": [individual.params.tolist() for individual in self.population],
-                "population_fitness": [float(individual.fitness) for individual in self.population],
-                # "population_outputs": [individual.output.tolist() if isinstance(individual.output, np.ndarray) else individual.output for individual in self.population],
-                "best_index": int(np.argmin([individual.fitness for individual in self.population])),
-                "min": float(min(individual.fitness for individual in self.population)),
-                "avg": float(np.mean([individual.fitness for individual in self.population]))
+                "config": self.config
             }
             with open(os.path.join(snapshot_dir, f"snapshot_gen_{gen}.json"), "w") as fh:
                 json.dump(snapshot, fh, indent=2)
@@ -665,6 +624,25 @@ class EGA:
                 print(f"[Gen {gen}] min={snapshot['min']:.6g}; avg={snapshot['avg']:.6g}; time={self.history['gen_time'][-1]:.2f}s")
 
         total_time = time.time() - t0
+
+        best_individual = self.population[0]
+
+        # --- Spaghetti Plot Simulation ---
+        spaghetti_config = self.config.get("spaghetti_plot", {})
+        if spaghetti_config.get("enabled", False):
+            num_simulations = spaghetti_config.get("num_simulations", 50)
+            noise_std_factor = spaghetti_config.get("noise_std_factor", 0.5)
+            original_noise_std = self.evaluator.noise_std
+            self.evaluator.noise_std *= noise_std_factor
+
+            spaghetti_results = []
+            for _ in range(num_simulations):
+                _, solution = self.evaluator.simulate(best_individual.params)
+                if solution:
+                    spaghetti_results.append(solution.y.tolist())
+            
+            self.evaluator.noise_std = original_noise_std # Restaurar
+
         # final save
         final = {
             "history": self.history,
@@ -675,8 +653,13 @@ class EGA:
             "config": self.config,
             "total_time_s": total_time
         }
+        if 'spaghetti_results' in locals():
+            final["spaghetti_results"] = spaghetti_results
         with open(os.path.join(snapshot_dir, "final_result.json"), "w") as fh:
             json.dump(final, fh, indent=2)
+        # close pool
+        self.pool.close()
+        self.pool.join()
         return final
 
     def _record_stats(self):

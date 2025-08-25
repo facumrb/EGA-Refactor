@@ -13,7 +13,7 @@ populationSize: 30 # Valor sugerido: 40–60
 # pero limitado por el costo computacional del evaluador ODE.
 
 # Número de generaciones: cuántas iteraciones ejecutará el algoritmo.
-generations: 120 # Valor sugerido: 40–100
+generations: 25 # Valor sugerido: 40–100
 # Debe permitir convergencia razonable con el budget computacional.
 
 # Tasa de cruzamiento: probabilidad de que dos padres se crucen para crear descendencia.
@@ -93,6 +93,17 @@ processes: 7 # Valor sugerido: max(1, cpu_count() − 1)
 seed: 42 # Valor sugerido: cualquier entero
 # Estándar en experimentación reproducible; mencionado en estudio sobre init.
 
+strategy: "uniform" # o "center"
+# - uniform : Simula variabilidad natural en parámetros bioquímicos
+# - center : Modela condiciones homeostáticas equilibradas
+
+# --- Parámetros para análisis post-simulación ---
+
+spaghetti_plot:
+  enabled: true
+  num_simulations: 50 # Número de simulaciones con ruido a ejecutar
+  noise_std_factor: 0.5 # Factor para escalar el ruido (1.0 = usar el original)
+
 # --- Parámetros del Evaluador (Modelo ODE) ---
 
 # Intervalo de tiempo para la simulación de la Ecuación Diferencial Ordinaria (ODE). Formato: [inicio, fin].
@@ -105,7 +116,7 @@ dt: 0.5 # Valor sugerido: 0.5 para estabilidad numérica y eficiencia computacio
 # Debe ser lo suficientemente grande para reducir el costo computacional.
 
 # Desviación estándar del ruido a añadir en la simulación (si se desea).
-noise_std: 0.0 # Valor sugerido: 0.0 (0 ruido) para demo
+noise_std: 0.05 # Valor sugerido: 0.0 (0 ruido) para demo
 # Puede subir a 0.05 si deseás robustez fenotípica.
 
 # Objetivo: valores que se esperan alcanzar en la simulación.
@@ -179,6 +190,8 @@ fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
 # la complejidad del individuo (en este caso, la suma de sus parámetros) y agregar una penalización 
 # al fitness. Esto incentiva a los algoritmos genéticos a encontrar soluciones más simples (menos 
 # complejas) cuando es posible.
+# La mejor aproximación es experimentar. Ejecutar el algoritmo con diferentes valores del factor de 
+# penalización y analizar los resultados.
 
 # Opción futura para la definición de fitness_penalty_factor: Autoadaptación (Self-Adaptation)
 #Este es el enfoque más avanzado y biológicamente inspirado de todos. 
@@ -193,7 +206,19 @@ fitness_penalty_factor: 0.001  # Factor para la penalización por complejidad
 # valor de fitness_penalty_factor para ese problema. Es el sistema más flexible y potente.
 # Desventajas: Muy complejo de implementar correctamente. Puede hacer que la convergencia sea 
 # más lenta o inestable si no se diseña con cuidado.
+# Directorio para guardar los "snapshots" JSON (estados intermedios) de cada generación.
 
+snapshot_dir: "snapshots"
+# JSON para facilitar análisis posterior y reproducibilidad.
+
+# Número de participantes en la selección por torneo.
+tournament_k: 3 # Valor sugerido: 3
+# Controla presión selectiva. Mayor k aumenta presión selectiva, pero puede reducir diversidad.
+
+# Todos los valores están razonados: 
+#balancean exploración, plausibility biológica y coste computacional.
+# Se basan en la literatura sobre optimización de GRN y ejemplos de poblaciones 
+# usadas en otros problemas paramétricos.
 
 # Parámetros ajustados para 1 hora y 20 minutos
 # populationSize: 50

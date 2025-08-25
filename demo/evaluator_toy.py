@@ -10,15 +10,15 @@ de la manera más parecida a un resultado objetivo o experimental.
 
 import numpy as np
 from scipy.integrate import solve_ivp
-import time
-from pebble import ProcessPool
-from concurrent.futures import TimeoutError as PebbleTimeout
-
+from typing import Dict
 
 # Constantes para la configuración del evaluador y la función de fitness
 DEFAULT_TARGET = np.array([1.0, 0.8, 0.6])
 DEFAULT_BOUNDS = np.array([[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3)
 
+# --- Parámetros de la simulación ---
+MIN_PRODUCTION_RATE = 1e-6
+MIN_DEGRADATION_RATE = 1e-3
 
 # --- Parámetros de la función de fitness ---
 REWARD_TOLERANCE = 0.1            # Tolerancia para la recompensa por alcanzar el objetivo
@@ -32,8 +32,7 @@ class ToyODEEvaluator:
     descrito por las EDOs y lo compara con un resultado deseado para calcular
     un valor de 'fitness' o 'aptitud'.
     """
-    def __init__(self, config: dict):
-
+    def __init__(self, config: Dict):
         """Inicializa el evaluador.
 
         Args:
@@ -45,22 +44,18 @@ class ToyODEEvaluator:
             dt (float): El paso de tiempo para la simulación.
             noise_std (float): La desviación estándar del ruido que se puede añadir a los
             datos simulados para hacer el modelo más realista. Defaults to 0.0.
-            fitness_penalty_factor (float): Factor para penalizar la complejidad en la función de fitness.
         """
         self.t_span = config["t_span"]
         self.dt = config["dt"]
         self.noise_std = config["noise_std"]
+        self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
         self.fitness_penalty_factor = config["fitness_penalty_factor"]
         self.high_fitness_penalty = config["high_fitness_penalty"]
-        self.timeout = config.get("timeout", 25.0)
-        self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
-        self.min_production_rate = config["min_production_rate"]
-        self.min_degradation_rate = config["min_degradation_rate"]
-        self.seed = config["seed"]
-        self.target = np.array(config["target"], dtype=float) if config["target"] is not None else DEFAULT_TARGET
-        self.bounds = np.array(config["bounds"], dtype=float) if config["bounds"] is not None else DEFAULT_BOUNDS
+        self.target = np.array(config["target"], dtype=float)
+        self.bounds = np.array(config["bounds"], dtype=float)
+        self.config = dict(config)
 
-    def _ode_system(self, t, y, individual_params):
+    def _ode_system(self, t, y, individual):
         """Define el sistema de Ecuaciones Diferenciales Ordinarias (EDOs) que modela la red genética.
         Las EDOs describen tasas de cambio (dy/dt), que biológicamente representan el balance entre síntesis (transcripción/traducción) y degradación de proteínas 
         en células. Matemáticamente, es un sistema vectorial para eficiencia; biológicamente, captura dinámicas colectivas como en circuitos genéticos reales.
@@ -70,23 +65,23 @@ class ToyODEEvaluator:
             t (float): Tiempo actual (requerido por el solver de EDOs, aunque no se use explícitamente aquí porque la tasa de cambio de las concentraciones ( dydt ) 
             depende únicamente de las concentraciones actuales ( y ) y de los parámetros del individuo ( individual_params ), pero no de t).
             y (np.ndarray): Vector con las concentraciones actuales de las proteínas (factores de transcripción).
-            individual_params (np.ndarray): Vector de parámetros que define el comportamiento del sistema.
+            individual (np.ndarray): Vector de parámetros que define el comportamiento del sistema.
 
         Returns:
             np.ndarray: Las tasas de cambio (derivadas) de las concentraciones de proteínas.
         """
         # individual_params (parámetros) tiene 9 elementos.
         # Modelo simple: dy_i/dt = tasa_prod_i * sigmoide(interaccion_i * suma_total) - tasa_deg_i * y_i
-        # Decodificamos 'individual_params' de forma vectorial para mayor eficiencia usando slicing ( [0::3] , etc.).
+        # Decodificamos 'individual' de forma vectorial para mayor eficiencia usando slicing ( [0::3] , etc.).
         # Slicing divide el genoma en tríos (prod, deg, inter por proteína), matemáticamente eficiente para arrays. 
         # Biológicamente, refleja cómo genes codifican tasas (ejemplo: promotores fuertes/débiles en biología molecular)
         # np.maximum previene tasas negativas, que biológicamente no ocurren (ejemplo: degradación no puede ser cero o negativa en modelos realistas).
-        prod = np.maximum(self.min_production_rate, individual_params[0::3]) # Tasas de producción de proteínas (transcripción génica)
-        deg = np.maximum(self.min_degradation_rate, individual_params[1::3]) # Tasas de degradación (turnover proteico)
+        prod = np.maximum(MIN_PRODUCTION_RATE, individual[0::3]) # Tasas de producción
+        deg = np.maximum(MIN_DEGRADATION_RATE, individual[1::3]) # Tasas de degradación
         # inter modela cómo una proteína afecta la producción de otras, simulando regulación transcripcional (ejemplo: activadores/repressores en redes genéticas).
         # Matemáticamente, es un coeficiente escalar; biológicamente, representa sensibilidad a la actividad total, como en quorum sensing donde moléculas 
         # señalan densidad celular.
-        inter = individual_params[2::3] # Modulan la producción según la actividad total
+        inter = individual[2::3] # Modulan la producción según la actividad total
 
         # Función auxiliar para sigmoide
         # Esta es una variante de la sigmoide estándar 1 / (1 + exp(-x))
@@ -133,11 +128,9 @@ class ToyODEEvaluator:
             tuple: Una tupla conteniendo el estado final del sistema (y_final) y el objeto
                    de la solución completa de la simulación. Si falla, retorna (None, None).
         """
+        y0 = self.initial_conditions
         t0, tf = self.t_span
         t_eval = np.arange(t0, tf + self.dt, self.dt) # np.arange(inicio, fin, paso) son los puntos temporales
-        # 1. Iniciar un bloque de manejo de errores.
-        # La simulación numérica a veces puede fallar (por ejemplo, si los parámetros del individuo
-        # crean un sistema inestable), y este 'try' nos permite capturar esos fallos sin que el programa se detenga.
         try:
             # 2. Llamar al solucionador de EDOs (un Problema de Valor Inicial). 
             # Las EDOs son perfectas para describir cómo las concentraciones de proteínas (y) cambian con el tiempo (t), es decir, dy/dt = f(t, y).
@@ -172,29 +165,23 @@ class ToyODEEvaluator:
             #       solve_ivp toma estas nuevas derivadas y calcula el estado para el siguiente pequeño paso de tiempo.
             #       Este ciclo se repite una y otra vez. solve_ivp va dando pequeños pasos en el tiempo, desde t_span[0] hasta t_span[1], 
             #       y en cada paso, llama a _ode_system para preguntarle "¿hacia dónde vamos ahora?".
-            solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual),
-                            t_span=self.t_span, y0=self.initial_conditions, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6)
+            solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0,
+                                    t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA", 
+                                    dense_output=True)
             
             # 3. Extraer el estado final del sistema.
             # solution.y es la matriz de resultados. [:, -1] es una forma de seleccionar
             # de todas las filas (:) la última columna (-1). 
             # Esto nos da un array con la concentración de cada proteína en el tiempo final 'tf'.
             y_final = solution.y[:, -1]
-            # 4. (Opcional) Simular ruido experimental.
-            # Los experimentos biológicos reales no son perfectos. Esta línea añade un poco de
-            # aleatoriedad (ruido gaussiano) al resultado final para que la simulación sea más realista.
+            # Opcionalmente, se añade ruido para simular variabilidad experimental.
             if self.noise_std > 0:
                 np.random.seed(self.seed) # Semilla fija para reproducibilidad del ruido
                 y_final = y_final + np.random.normal(0, self.noise_std, size=y_final.shape)
-            # 5. Devolver el resultado exitoso.
-            # Se devuelve tanto el estado final como el objeto 'solution' completo, por si se necesita más adelante.
             return y_final, solution
-        # 6. Capturar cualquier error que haya ocurrido durante el 'try'.
-        except Exception as error:
-            # 7. Si la simulación falló, se informa y se devuelve un resultado que indica el fallo ('None').
-            # Esto es crucial para que el algoritmo genético sepa que el individuo que causó el error
-            # no es una solución viable y le asigne un fitness muy malo.
-            raise ValueError(f"Simulación fallida para individuo: {error}")
+        except Exception:
+            # Si la integración numérica falla, se retorna un resultado que indica el fallo.
+            return None, None
 
     def _calculate_L2_distance(self, y_final):
         """Calcula la distancia euclidiana (linea recta L2) entre el resultado y el objetivo."""
@@ -271,6 +258,7 @@ class ToyODEEvaluator:
 
         Args:
             individual (np.ndarray): Vector de parámetros a evaluar.
+            timeout (any, optional): No implementado en esta versión. Defaults to None.
 
         Returns:
             float: El valor de fitness (un número más pequeño es mejor).
@@ -278,6 +266,10 @@ class ToyODEEvaluator:
         individual = np.array(individual, dtype=float)
         # Convierte la lista de parámetros en un array de NumPy de tipo flotante, el formato que necesita 
         # el solver de Ecuaciones Diferenciales (ODE).
+
+        # validaciones básicas
+        if self.bounds is None or individual.shape[0] != self.bounds.shape[0]:
+            return float(self.high_fitness_penalty), None
 
         # Soft constraint para bounds en lugar de 'inf'
         bound_violation = np.sum(np.maximum(0, self.bounds[:, 0] - individual) + np.maximum(0, individual - self.bounds[:, 1]))
@@ -289,6 +281,9 @@ class ToyODEEvaluator:
         try:
             # Estado final del sistema y el objeto de la solución
             y_final, solution = self.simulate(individual)
+            if y_final is None or solution is None:
+                return float(self.high_fitness_penalty), None
+
             if y_final is None:
                 return self.high_fitness_penalty + penalty  # Penalización alta pero finita
 
@@ -299,9 +294,11 @@ class ToyODEEvaluator:
 
             # El fitness total es la suma de sus componentes
             fitness = float(L2_distance + complexity_penalty + reached_reward)
-            return fitness
-        except ValueError:
-            return self.high_fitness_penalty + penalty  # Penalización finita
+            return fitness, solution
+        except Exception as error:
+            # loguear error para debugging
+            print(f"[Evaluator] excepción al evaluar: {error}")
+            return float(self.high_fitness_penalty), None
 
 # Bloque para una prueba rápida del evaluador.
 if __name__ == "__main__":
