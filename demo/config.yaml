@@ -34,6 +34,10 @@ evaluator_params:
   noise_std: 0.05 # Valor sugerido: 0.0 (0 ruido) para demo
   # Puede subir a 0.05 si deseás robustez fenotípica.
 
+  # Semilla para la generación de números aleatorios, para resultados reproducibles.
+  seed: 42 # Valor sugerido: cualquier entero
+  # Estándar en experimentación reproducible; mencionado en estudio sobre init.
+
   # Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
   bounds:
     - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
@@ -223,10 +227,6 @@ ega_params:
   # Número de procesos a utilizar para evaluar la población en paralelo.
   processes: 7 # Valor sugerido: max(1, cpu_count() − 1)
   # Mejores prácticas de multiprocessing en Python; evitar saturar memoria.
-
-  # Semilla para la generación de números aleatorios, para resultados reproducibles.
-  seed: 42 # Valor sugerido: cualquier entero
-  # Estándar en experimentación reproducible; mencionado en estudio sobre init.
 
   # Número de participantes en la selección por torneo.
   tournament_k: 3 # Valor sugerido: 3

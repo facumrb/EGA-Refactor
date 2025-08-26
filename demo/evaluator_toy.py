@@ -53,6 +53,7 @@ class ToyODEEvaluator:
         self.high_fitness_penalty = config["high_fitness_penalty"]
         self.target = np.array(config["target"], dtype=float)
         self.bounds = np.array(config["bounds"], dtype=float)
+        self.seed = config["seed"]
         self.config = dict(config)
 
     def _ode_system(self, t, y, individual):
@@ -245,7 +246,7 @@ class ToyODEEvaluator:
                     # Modela la ventaja evolutiva de redes genéticas que logran estados deseados rápidamente, como en respuestas inmunes (e.g., activación 
                     # rápida de genes ante patógenos) o desarrollo embrionario (e.g., diferenciación celular oportuna). Una recompensa más negativa 
                     # incentiva eficiencia temporal, reflejando selección natural por mecanismos biológicos ágiles y energéticamente óptimos.
-                    return -REACHED_REWARD_VALUE / (t_reached + 1e-6)
+                    return REACHED_REWARD_VALUE / (t_reached + 1e-6)
         return 0.0
 
     def evaluate(self, individual):
