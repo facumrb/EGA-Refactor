@@ -5,6 +5,41 @@
 # Un error aquí no es un error de sintaxis, sino un error en el diseño experimental, 
 # que puede llevar a resultados sin sentido o a tiempos de cómputo excesivos.
 
+# --- Parámetros Comunes ---
+  # Semilla para la generación de números aleatorios, para resultados reproducibles.
+  seedCommon: 42 # Valor sugerido: cualquier entero
+  # Estándar en experimentación reproducible; mencionado en estudio sobre init.
+
+  # Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
+  boundsCommon:
+    - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+    - [0.1, 3.0]    # Grupo 2: Parámetros cinéticos
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+    - [0.1, 3.0]    # Grupo 3: Parámetros metabólicos
+    - [0.01, 1.0]
+    - [-3.0, 3.0]
+  # Parámetros fisiológicos :
+  # [0.1, 3.0] → Posibles tasas metabólicas o concentraciones
+  # [0.01, 1.0] → Constantes de afinidad/eficiencia enzimática
+  # [-3.0, 3.0] → Factores regulatorios (activación/inhibición)
+  # Propósito evolutivo :
+  # Mantener soluciones dentro de rangos biológicamente factibles
+  # Prevenir valores absurdos en parámetros bioquímicos
+  # Simular restricciones reales de sistemas biológicos
+
+  # Ejemplo: los primeros tres parámetros de cada grupo son iguales.
+  # Implicación biológica: Esta simetría sugiere que el modelo considera:
+  # - Tres componentes idénticos en el sistema
+  # - Mecanismos regulatorios equivalentes entre subsistemas
+  # - Condiciones homeostáticas equilibradas
+
+  # Fundamental para reparación y validez biológica.
+  # Es parte del diseño del evaluador y contexto del sistema biológico.
+
+
 
 # --- Parámetros del Evaluador (Modelo ODE) ---
 evaluator_params:
@@ -34,34 +69,7 @@ evaluator_params:
   noise_std: 0.05 # Valor sugerido: 0.0 (0 ruido) para demo
   # Puede subir a 0.05 si deseás robustez fenotípica.
 
-  # Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
-  bounds:
-    - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
-    - [0.01, 1.0]
-    - [-3.0, 3.0]
-    - [0.1, 3.0]    # Grupo 2: Parámetros cinéticos
-    - [0.01, 1.0]
-    - [-3.0, 3.0]
-    - [0.1, 3.0]    # Grupo 3: Parámetros metabólicos
-    - [0.01, 1.0]
-    - [-3.0, 3.0]
-  # Parámetros fisiológicos :
-  # [0.1, 3.0] → Posibles tasas metabólicas o concentraciones
-  # [0.01, 1.0] → Constantes de afinidad/eficiencia enzimática
-  # [-3.0, 3.0] → Factores regulatorios (activación/inhibición)
-  # Propósito evolutivo :
-  # Mantener soluciones dentro de rangos biológicamente factibles
-  # Prevenir valores absurdos en parámetros bioquímicos
-  # Simular restricciones reales de sistemas biológicos
-
-  # Ejemplo: los primeros tres parámetros de cada grupo son iguales.
-  # Implicación biológica: Esta simetría sugiere que el modelo considera:
-  # - Tres componentes idénticos en el sistema
-  # - Mecanismos regulatorios equivalentes entre subsistemas
-  # - Condiciones homeostáticas equilibradas
-
-  # Fundamental para reparación y validez biológica.
-  # Es parte del diseño del evaluador y contexto del sistema biológico.
+  bounds: boundsCommon
 
   initial_conditions: [0.1, 0.1, 0.1]
   # Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
@@ -139,10 +147,7 @@ evaluator_params:
   # pero lo suficientemente grande para evitar artefactos numéricos en ODE.
   # En redes genéticas, tasas cero romperían homeostasis; esto fuerza dinámica mínima, como en modelos de circuitos genéticos.
 
-  # Semilla para la generación de números aleatorios, para resultados reproducibles.
-  seed: 42 # Valor sugerido: cualquier entero
-  # Estándar en experimentación reproducible; mencionado en estudio sobre init.
-
+  seed: seedCommon
 
 # --- Parámetros del Algoritmo Genético ---
 
@@ -168,34 +173,7 @@ ega_params:
   # Tamaño de la élite: número de los mejores individuos que pasan directamente a la siguiente generación.
   elite_size: 3 # Valor sugerido: 1–5
 
-  # Límites para cada parámetro (gen) de los individuos. Formato: [mínimo, máximo].
-  bounds:
-    - [0.1, 3.0]    # Grupo 1: Parámetros estructurales
-    - [0.01, 1.0]
-    - [-3.0, 3.0]
-    - [0.1, 3.0]    # Grupo 2: Parámetros cinéticos
-    - [0.01, 1.0]
-    - [-3.0, 3.0]
-    - [0.1, 3.0]    # Grupo 3: Parámetros metabólicos
-    - [0.01, 1.0]
-    - [-3.0, 3.0]
-  # Parámetros fisiológicos :
-  # [0.1, 3.0] → Posibles tasas metabólicas o concentraciones
-  # [0.01, 1.0] → Constantes de afinidad/eficiencia enzimática
-  # [-3.0, 3.0] → Factores regulatorios (activación/inhibición)
-  # Propósito evolutivo :
-  # Mantener soluciones dentro de rangos biológicamente factibles
-  # Prevenir valores absurdos en parámetros bioquímicos
-  # Simular restricciones reales de sistemas biológicos
-
-  # Ejemplo: los primeros tres parámetros de cada grupo son iguales.
-  # Implicación biológica: Esta simetría sugiere que el modelo considera:
-  # - Tres componentes idénticos en el sistema
-  # - Mecanismos regulatorios equivalentes entre subsistemas
-  # - Condiciones homeostáticas equilibradas
-
-  # Fundamental para reparación y validez biológica.
-  # Es parte del diseño del evaluador y contexto del sistema biológico.
+  bounds: boundsCommon
 
   # Parámetro alfa para el cruzamiento BLX-alpha. Controla la dispersión de la descendencia.
   alpha_blx: 0.15 # Valor sugerido: 0.1–0.3 (comúnmente ~0.1–0.15)
@@ -229,9 +207,7 @@ ega_params:
   processes: 7 # Valor sugerido: max(1, cpu_count() − 1)
   # Mejores prácticas de multiprocessing en Python; evitar saturar memoria.
 
-  # Semilla para la generación de números aleatorios, para resultados reproducibles.
-  seed: 42 # Valor sugerido: cualquier entero
-  # Estándar en experimentación reproducible; mencionado en estudio sobre init.
+  seed: seedCommon
 
   # Número de participantes en la selección por torneo.
   tournament_k: 3 # Valor sugerido: 3
@@ -245,7 +221,7 @@ ega_params:
 
 spaghetti_plot:
   enabled: True
-  num_simulations: 50 # Número de simulaciones con ruido a ejecutar
+  num_simulations: 100 # Número de simulaciones con ruido a ejecutar
   noise_std_factor: 0.5 # Factor para escalar el ruido (1.0 = usar el original)
 
 snapshot_dir: "snapshots"

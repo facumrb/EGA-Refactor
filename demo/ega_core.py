@@ -543,6 +543,16 @@ class EGA:
         probs = scores / np.sum(scores)
         idx = np.random.choice(len(self.population), size=num_select, p=probs)
         return [self.population[i] for i in idx]
+    
+    def _record_stats(self):
+        """Registra las estadísticas de la población actual (fitness mínimo y promedio).
+
+        Args:
+            gen (int): El número de la generación actual.
+        """
+        fitness = np.array([individual.fitness for individual in self.population], dtype=float)
+        self.history["min"].append(float(np.min(fitness)))
+        self.history["avg"].append(float(np.mean(fitness)))
 
     # --------------------------
     # Bucle principal del algoritmo
@@ -570,7 +580,9 @@ class EGA:
         gen = 0
         # Muestra datos de la primera población:
         if verbose:
-            print(f"[Gen {gen}] min={min([individual.fitness for individual in self.population]):.6g}; avg={np.mean([individual.fitness for individual in self.population]):.6g}")
+            min = min([individual.fitness for individual in self.population])
+            avg = np.mean([individual.fitness for individual in self.population])
+            print(f"[Gen {gen}] min={min:.6g}; avg={avg:.6g}")
         
         for gen in range(1, self.generations + 1):
             # Comienza el tiempo de la simulación
@@ -616,7 +628,10 @@ class EGA:
                 json.dump(snapshot, fh, indent=2)
 
             if verbose:
-                print(f"[Gen {gen}] min={snapshot['min']:.6g}; avg={snapshot['avg']:.6g}; time={self.history['gen_time'][-1]:.2f}s")
+                min = snapshot['min']
+                avg = snapshot['avg']
+                time = self.history['gen_time'][-1]
+                print(f"[Gen {gen}] min={min:.6g}; avg={avg:.6g}; time={time:.2f}s")
 
         total_time = time.time() - t0
 
@@ -625,7 +640,7 @@ class EGA:
         # --- Spaghetti Plot Simulation ---
         spaghetti_config = self.config.get("spaghetti_plot", {})
         if spaghetti_config.get("enabled", False):
-            num_simulations = spaghetti_config.get("num_simulations", 50)
+            num_simulations = spaghetti_config.get("num_simulations", 100)
             noise_std_factor = spaghetti_config.get("noise_std_factor", 0.5)
             original_noise_std = self.evaluator.noise_std
             self.evaluator.noise_std *= noise_std_factor
@@ -656,15 +671,5 @@ class EGA:
         self.pool.close()
         self.pool.join()
         return final
-
-    def _record_stats(self):
-        """Registra las estadísticas de la población actual (fitness mínimo y promedio).
-
-        Args:
-            gen (int): El número de la generación actual.
-        """
-        fitness = np.array([individual.fitness for individual in self.population], dtype=float)
-        self.history["min"].append(float(np.min(fitness)))
-        self.history["avg"].append(float(np.mean(fitness)))
 
 # EOF

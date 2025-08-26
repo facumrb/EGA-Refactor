@@ -67,7 +67,7 @@ def get_default_config():
         },
         "snapshot_dir": "snapshots"
     }
-
+    
 def validate_config(config, default_config):
     """Valida las claves en la configuración del usuario de forma recursiva."""
     for key, value in default_config.items():
