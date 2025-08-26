@@ -153,12 +153,12 @@ evaluator_params:
 
 ega_params:
   # Tamaño de la población: número de individuos en cada generación.
-  populationSize: 30 # Valor sugerido: 40–60
+  populationSize: 20 # Valor sugerido: 40–60
   # Debe ser lo suficientemente grande para explorar diversidad, 
   # pero limitado por el costo computacional del evaluador ODE.
 
   # Número de generaciones: cuántas iteraciones ejecutará el algoritmo.
-  generations: 4 # Valor sugerido: 40–100 (predet: 25)
+  generations: 10 # Valor sugerido: 40–100 (predet: 25)
   # Debe permitir convergencia razonable con el budget computacional.
 
   # Tasa de cruzamiento: probabilidad de que dos padres se crucen para crear descendencia.
