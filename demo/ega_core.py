@@ -301,37 +301,31 @@ class EGA:
                        método 'evaluate(params)' que devuelva un valor de 'fitness' 
                        (donde un número más bajo es mejor).
         """
-        self.config = config
+        self.config = dict(config)
         self.evaluator = evaluator
-        self.bounds = np.array(config["bounds"], dtype=float)
         self.pop_size = int(config.get("populationSize", 30))
         self.generations = int(config.get("generations", 25))
         self.crossover_rate = float(config.get("crossover_rate", 0.8))
         self.mutation_rate = float(config.get("mutation_rate", 0.15))
         self.elite_size = int(config.get("elite_size", 3))
+        self.bounds = np.array(config["bounds"], dtype=float)
         self.alpha_blx = float(config.get("alpha_blx", 0.15))
         self.mutation_scale = np.array(config.get("mutation_scale", [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]), dtype=float)
-        self.tournament_k = int(config.get("tournament_k", 3))
-
-        self.timeout = float(config.get("timeout", 25.0))
-        self.base_timeout = float(config.get("base_timeout", 25.0))
-        self.max_timeout = float(config.get("max_timeout", 300.0))
-
-        # Cargar la configuración del timeout adaptativo
-        timeout_cfg = config.get('timeout_config', {})
         self.failure_rate_threshold_increase = timeout_cfg.get('failure_rate_threshold_increase', 0.3)
         self.failure_rate_threshold_decrease = timeout_cfg.get('failure_rate_threshold_decrease', 0.05)
         self.timeout_increase_factor = timeout_cfg.get('timeout_increase_factor', 2.0)
         self.timeout_decrease_factor = timeout_cfg.get('timeout_decrease_factor', 0.9)
-
+        self.base_timeout = float(config.get("base_timeout", 25.0))
+        self.max_timeout = float(config.get("max_timeout", 300.0))
+        self.timeout = float(config.get("timeout", 25.0))
         self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
         self.seed = int(config.get("seed", 42))
-        self.strategy = config.get("strategy")
         random.seed(self.seed)
         np.random.seed(self.seed)
-        self.high_fitness_penalty = float(config.get("high_fitness_penalty", 1e6))
-        self.cache = {}  # caching evaluations: key -> fitness
+        self.tournament_k = int(config.get("tournament_k", 3))
         self.strategy = config.get("strategy", "uniform")
+        
+        self.cache = {}  # caching evaluations: key -> fitness
         self.previous_avg_fitness = None
         self.population = [Individual(self.bounds, self.strategy) for _ in range(self.pop_size)]
 
@@ -611,8 +605,8 @@ class EGA:
             # snapshot
             snapshot = {
                 "gen": gen,
-                "min": float(min([p.fitness for p in self.population])),
-                "avg": float(np.mean([p.fitness for p in self.population])),
+                "min": float(min([individual.fitness for individual in self.population])),
+                "avg": float(np.mean([individual.fitness for individual in self.population])),
                 "best_params": self.population[0].params.tolist(),
                 "pop_params": [individual.params.tolist() for individual in self.population],
                 "seed": self.seed,

@@ -37,6 +37,7 @@ def get_default_config():
             "fitness_penalty_factor": 0.001,
             "min_production_rate": 1e-6,
             "min_degradation_rate": 1e-3,
+            "seed": 42,
         },
         "ega_params": {
             "populationSize": 30,
@@ -108,7 +109,6 @@ def main():
 
     if len(config["ega_params"]["mutation_scale"]) != len(config["evaluator_params"]["bounds"]):
         raise ValueError("mutation_scale debe tener la misma longitud que bounds.")
-
 
     print("Configuración del EGA:", config["ega_params"])
     

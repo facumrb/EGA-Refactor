@@ -45,14 +45,16 @@ class ToyODEEvaluator:
             noise_std (float): La desviación estándar del ruido que se puede añadir a los
             datos simulados para hacer el modelo más realista. Defaults to 0.0.
         """
+        self.target = np.array(config["target"], dtype=float)
         self.t_span = config["t_span"]
         self.dt = config["dt"]
         self.noise_std = config["noise_std"]
+        self.bounds = np.array(config["bounds"], dtype=float)
         self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
         self.fitness_penalty_factor = config["fitness_penalty_factor"]
         self.high_fitness_penalty = config["high_fitness_penalty"]
-        self.target = np.array(config["target"], dtype=float)
-        self.bounds = np.array(config["bounds"], dtype=float)
+        self.min_production_rate = config["min_production_rate"]
+        self.min_degradation_rate = config["min_degradation_rate"]
         self.seed = config["seed"]
         self.config = dict(config)
 

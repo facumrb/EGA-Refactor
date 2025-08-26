@@ -143,6 +143,8 @@ evaluator_params:
   # pero lo suficientemente grande para evitar artefactos numéricos en ODE.
   # En redes genéticas, tasas cero romperían homeostasis; esto fuerza dinámica mínima, como en modelos de circuitos genéticos.
 
+  seed: 42
+
 # --- Parámetros del Algoritmo Genético ---
 
 ega_params:
