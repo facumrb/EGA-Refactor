@@ -104,11 +104,11 @@ def main():
     # Validar configuración
     validate_config(config, default_config)
 
-    # Instanciar el evaluador con los parámetros de la configuración
-    evaluator = ToyODEEvaluator(config["evaluator_params"])
-
     if len(config["ega_params"]["mutation_scale"]) != len(config["evaluator_params"]["bounds"]):
         raise ValueError("mutation_scale debe tener la misma longitud que bounds.")
+
+    # Instanciar el evaluador con los parámetros de la configuración
+    evaluator = ToyODEEvaluator(config["evaluator_params"])
 
     print("Configuración del EGA:", config["ega_params"])
     

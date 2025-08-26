@@ -326,7 +326,7 @@ class EGA:
         self.strategy = config.get("strategy", "uniform")
         
         self.cache = {}  # caching evaluations: key -> fitness
-        self.previous_avg_fitness = None
+        """self.previous_avg_fitness = None"""
         self.population = [Individual(self.bounds, self.strategy) for _ in range(self.pop_size)]
 
         self.history = {"min": [], "avg": [], "gen_time": []}

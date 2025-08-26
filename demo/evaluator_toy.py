@@ -45,18 +45,18 @@ class ToyODEEvaluator:
             noise_std (float): La desviación estándar del ruido que se puede añadir a los
             datos simulados para hacer el modelo más realista. Defaults to 0.0.
         """
+        self.config = dict(config)
         self.target = np.array(config["target"], dtype=float)
         self.t_span = config["t_span"]
         self.dt = config["dt"]
         self.noise_std = config["noise_std"]
         self.bounds = np.array(config["bounds"], dtype=float)
         self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
-        self.fitness_penalty_factor = config["fitness_penalty_factor"]
         self.high_fitness_penalty = config["high_fitness_penalty"]
+        self.fitness_penalty_factor = config["fitness_penalty_factor"]
         self.min_production_rate = config["min_production_rate"]
         self.min_degradation_rate = config["min_degradation_rate"]
         self.seed = config["seed"]
-        self.config = dict(config)
 
     def _ode_system(self, t, y, individual):
         """Define el sistema de Ecuaciones Diferenciales Ordinarias (EDOs) que modela la red genética.
