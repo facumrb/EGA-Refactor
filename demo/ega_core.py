@@ -145,7 +145,7 @@ class Individual:
         # fitness: Representa la aptitud biológica del individuo
         # Inicialmente se establece en None, ya que el individuo no ha sido evaluado todavía.
         self.fitness = None
-        self.time = None
+        self.solution_times = None
         self.trajectory = None
 
     def decode(self):
@@ -311,10 +311,10 @@ class EGA:
         self.bounds = np.array(config["bounds"], dtype=float)
         self.alpha_blx = float(config.get("alpha_blx", 0.15))
         self.mutation_scale = np.array(config.get("mutation_scale", [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]), dtype=float)
-        self.failure_rate_threshold_increase = timeout_cfg.get('failure_rate_threshold_increase', 0.3)
-        self.failure_rate_threshold_decrease = timeout_cfg.get('failure_rate_threshold_decrease', 0.05)
-        self.timeout_increase_factor = timeout_cfg.get('timeout_increase_factor', 2.0)
-        self.timeout_decrease_factor = timeout_cfg.get('timeout_decrease_factor', 0.9)
+        self.failure_rate_threshold_increase = float(config.get('failure_rate_threshold_increase', 0.3))
+        self.failure_rate_threshold_decrease = float(config.get('failure_rate_threshold_decrease', 0.05))
+        self.timeout_increase_factor = float(config.get('timeout_increase_factor', 2.0))
+        self.timeout_decrease_factor = float(config.get('timeout_decrease_factor', 0.9))
         self.base_timeout = float(config.get("base_timeout", 25.0))
         self.max_timeout = float(config.get("max_timeout", 300.0))
         self.timeout = float(config.get("timeout", 25.0))
@@ -397,7 +397,7 @@ class EGA:
                 for individual, fitness, solution in zip(eval_needed_individuals, fitness_results, solution_results):
                     individual.fitness = float(fitness) if fitness is not None else float('inf')
                     individual.trajectory = solution.y
-                    individual.time = solution.t
+                    individual.solution_times = solution.t
                     # Si el fitness es infinito, se asume que la evaluación falló.
                     # En este caso, se asigna un valor alto al fitness para que el individuo sea menos apto.
                     key_for_Dictionary = safe_round_tuple(individual.decode())
@@ -580,9 +580,9 @@ class EGA:
         gen = 0
         # Muestra datos de la primera población:
         if verbose:
-            min = min([individual.fitness for individual in self.population])
-            avg = np.mean([individual.fitness for individual in self.population])
-            print(f"[Gen {gen}] min={min:.6g}; avg={avg:.6g}")
+            min_fitness = min([individual.fitness for individual in self.population])
+            avg_fitness = np.mean([individual.fitness for individual in self.population])
+            print(f"[Gen {gen}] min={min_fitness:.6g}; avg={avg_fitness:.6g}")
         
         for gen in range(1, self.generations + 1):
             # Comienza el tiempo de la simulación
@@ -628,10 +628,10 @@ class EGA:
                 json.dump(snapshot, fh, indent=2)
 
             if verbose:
-                min = snapshot['min']
-                avg = snapshot['avg']
-                time = self.history['gen_time'][-1]
-                print(f"[Gen {gen}] min={min:.6g}; avg={avg:.6g}; time={time:.2f}s")
+                min_fitness = snapshot['min']
+                avg_fitness = snapshot['avg']
+                gen_time = self.history['gen_time'][-1]
+                print(f"[Gen {gen}] min={min_fitness:.6g}; avg={avg_fitness:.6g}; time={gen_time:.2f}s")
 
         total_time = time.time() - t0
 

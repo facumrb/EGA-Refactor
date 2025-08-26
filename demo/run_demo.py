@@ -10,7 +10,7 @@ mejores parámetros para el modelo de juguete.
 Uso:
     python run_demo.py --config config.yaml
 """
-import yaml, argparse, os
+import yaml, argparse, os, sys
 import warnings
 from ega_core import EGA
 from evaluator_toy import ToyODEEvaluator
@@ -68,15 +68,26 @@ def get_default_config():
         "snapshot_dir": "snapshots"
     }
     
-def validate_config(config, default_config):
+def check_for_unknown_keys(user_config, default_config, path=""):
+    """Advierte sobre claves desconocidas en la configuración del usuario de forma recursiva."""
+    for key in user_config:
+        full_path = f"{path}.{key}" if path else key
+        if key not in default_config:
+            warnings.warn(f"Advertencia: Clave desconocida '{full_path}' en la configuración. Podría ser un error tipográfico y será ignorada.")
+        elif isinstance(user_config.get(key), dict) and isinstance(default_config.get(key), dict):
+            check_for_unknown_keys(user_config[key], default_config[key], path=full_path)
+
+def validate_config(config, default_config, path=""):
     """Valida las claves en la configuración del usuario de forma recursiva."""
     for key, value in default_config.items():
+        full_path = f"{path}.{key}" if path else key
         if key not in config:
-            raise ValueError(f"Clave requerida faltante en la configuración: {key}")
+            # Esto no debería ocurrir si se fusiona primero con los valores por defecto, pero es una buena práctica.
+            raise ValueError(f"Clave requerida faltante en la configuración: {full_path}")
         if isinstance(value, dict):
             if not isinstance(config[key], dict):
-                raise TypeError (f"El valor para la clave {key} debe ser un diccionario.")
-            validate_config(config[key], value)
+                raise TypeError (f"El valor para la clave '{full_path}' debe ser un diccionario.")
+            validate_config(config[key], value, path=full_path)
 
 def merge_configs(default, user):
     """Fusiona dos diccionarios de configuración de forma recursiva."""
@@ -97,6 +108,9 @@ def main():
     # Cargar configuración desde el archivo y fusionarla con la configuración por defecto
     user_config = load_config(args.config)
     default_config = get_default_config()
+
+    # Advertir sobre claves desconocidas en el archivo de configuración del usuario
+    check_for_unknown_keys(user_config, default_config)
 
     # Fusionar configuraciones
     config = merge_configs(default_config, user_config)
@@ -121,5 +135,8 @@ def main():
     print("Tiempo total (s):", results["total_time_s"])
     
 if __name__ == "__main__":
-    # Punto de entrada del script.
-    main()
+    try:
+        main()
+    except (FileNotFoundError, ValueError, TypeError, yaml.YAMLError) as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        sys.exit(1)
