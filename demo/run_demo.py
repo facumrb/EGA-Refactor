@@ -26,6 +26,8 @@ def get_default_config():
     # Retorna la configuración por defecto para la demostración.
     default_bounds = [[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3
     return {
+        "common_seed": 42,
+        "common_bounds": default_bounds,
         "evaluator_params": {
             "target": [1.0, 0.8, 0.6],
             "t_span": (0, 40),
