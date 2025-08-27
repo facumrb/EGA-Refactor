@@ -287,11 +287,10 @@ class ToyODEEvaluator:
         try:
             # Estado final del sistema y el objeto de la solución
             y_final, solution = self.simulate(individual)
+            # print(y_final)
+            # print(solution)
             if y_final is None or solution is None:
-                return float(self.high_fitness_penalty), None
-
-            if y_final is None:
-                print("Error: y_final es None.")
+                print("Error: y_final o solution es None.")
                 return float(self.high_fitness_penalty + penalty), None  # Penalización alta pero finita
 
             # Cálculo de los componentes del fitness a través de métodos especializados

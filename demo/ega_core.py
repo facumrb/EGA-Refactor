@@ -59,6 +59,7 @@ def _evaluator_wrapper(evaluator_and_individual):
     """Envoltorio para llamar al método evaluate del evaluador. Puede ser serializado."""
     # Desempaqueta los argumentos
     evaluator, individual = evaluator_and_individual
+    # print(evaluator, individual)
     # Llama al método evaluate del evaluador
     return evaluator.evaluate(individual)
 
@@ -653,6 +654,8 @@ class EGA:
             
             self.evaluator.noise_std = original_noise_std # Restaurar
 
+        self.population.sort(key=lambda x: x.fitness)
+
         # final save
         final = {
             "history": self.history,
@@ -660,7 +663,7 @@ class EGA:
                 "params": self.population[0].params.tolist(),
                 "fitness": float(self.population[0].fitness),
                 "t": self.population[0].solution_times,      # Asegúrate de que sea serializable (lista)
-                "y": self.population[0].trajectory.tolist() if self.population[0].trajectory is not None else print("Solution es None")  # Asegúrate de que sea serializable (lista)
+                "y": self.population[0].trajectory.tolist() # Asegúrate de que sea serializable (lista)
             },
             "config": self.config,
             "total_time_s": total_time
