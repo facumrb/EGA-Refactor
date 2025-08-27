@@ -142,8 +142,10 @@ def main():
     results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
     
     # Imprimir resultados
-    print("Mejor solución encontrada:", results["best"])
-    print("Tiempo total (s):", results["total_time_s"])
+    print("Mejor solución encontrada:")
+    pprint.pprint(results["best"])
+    print("Tiempo total (s):")
+    pprint.pprint(results["total_time_s"])
     
 if __name__ == "__main__":
     try:
