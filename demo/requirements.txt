@@ -1,3 +1,6 @@
 numpy
 scipy
 pyyaml
+matplotlib
+plotly
+nbformat>=4.2.0

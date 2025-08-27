@@ -658,7 +658,9 @@ class EGA:
             "history": self.history,
             "best": {
                 "params": self.population[0].params.tolist(),
-                "fitness": float(self.population[0].fitness)
+                "fitness": float(self.population[0].fitness),
+                "t": self.population[0].solution_times,      # Asegúrate de que sea serializable (lista)
+                "y": self.population[0].trajectory.tolist()  # Si trajectory es un np.array
             },
             "config": self.config,
             "total_time_s": total_time
