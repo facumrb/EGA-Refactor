@@ -660,7 +660,7 @@ class EGA:
                 "params": self.population[0].params.tolist(),
                 "fitness": float(self.population[0].fitness),
                 "t": self.population[0].solution_times,      # Asegúrate de que sea serializable (lista)
-                "y": self.population[0].trajectory.tolist()  # Si trajectory es un np.array
+                "y": self.population[0].trajectory.tolist() if self.population[0].trajectory is not None else print("Solution es None")  # Asegúrate de que sea serializable (lista)
             },
             "config": self.config,
             "total_time_s": total_time
