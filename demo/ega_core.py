@@ -609,7 +609,7 @@ class EGA:
             # 6. Formar la nueva población
             self.population = elites + offspring
 
-            # Guarda datos estadísticos en history:
+            # 7. Registrar estadísticas y tiempo de generación
             self._record_stats() # Siguiente registro de estadísticas
             end = time.time()
             self.history["gen_time"].append(end - start)

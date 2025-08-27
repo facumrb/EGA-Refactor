@@ -15,6 +15,7 @@ import warnings
 from ega_core import EGA
 from evaluator_toy import ToyODEEvaluator
 import numpy as np
+import pprint
 
 def load_config(path):
     """Carga un archivo de configuración en formato YAML."""
@@ -126,7 +127,15 @@ def main():
     # Instanciar el evaluador con los parámetros de la configuración
     evaluator = ToyODEEvaluator(config["evaluator_params"])
 
-    print("Configuración del EGA:", config["ega_params"])
+    """
+    # Imprimir configuraciones
+    print("Configuración del EGA:")
+    pprint.pprint(config["ega_params"])
+    print("Configuración del Evaluador:")
+    pprint.pprint(config["evaluator_params"])
+    print("Configuración del Spaghetti Plot:")
+    pprint.pprint(config["spaghetti_plot"])
+    """
     
     # Crear y ejecutar el algoritmo genético
     ega = EGA(config["ega_params"], evaluator=evaluator)
