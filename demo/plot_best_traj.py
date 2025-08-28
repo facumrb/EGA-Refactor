@@ -25,9 +25,9 @@ if not time or not y_values:
     exit(1)
 
 # Suponiendo que y_values es una lista de listas con 3 elementos (p. ej., [[p1, p2, p3], ...])
-protein1 = [point[0] for point in y_values]
-protein2 = [point[1] for point in y_values]
-protein3 = [point[2] for point in y_values]
+protein1 = y_values[0]
+protein2 = y_values[1]
+protein3 = y_values[2]
 
 # -----------------------------
 # Opción 1: Visualización estática con matplotlib
