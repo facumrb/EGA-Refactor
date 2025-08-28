@@ -136,6 +136,8 @@ evaluator_params:
   # Los valores actuales de populationSize y generations de un tiempo estimado total 
   # de ejecución es de 15 minutos
 
+  reached_reward_value: -0.1
+
   min_production_rate: 1e-6
   min_degradation_rate: 1e-3
   # En biología, las tasas de producción (transcripción) y degradación (turnover proteico) nunca

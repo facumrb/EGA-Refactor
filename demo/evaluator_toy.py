@@ -16,14 +16,6 @@ from typing import Dict
 DEFAULT_TARGET = np.array([1.0, 0.8, 0.6])
 DEFAULT_BOUNDS = np.array([[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3)
 
-# --- Parámetros de la simulación ---
-MIN_PRODUCTION_RATE = 1e-6
-MIN_DEGRADATION_RATE = 1e-3
-
-# --- Parámetros de la función de fitness ---
-REWARD_TOLERANCE = 0.1            # Tolerancia para la recompensa por alcanzar el objetivo
-REACHED_REWARD_VALUE = -0.1     # Valor de la recompensa
-
 class ToyODEEvaluator:
     """
     Clase que evalúa individuos (conjuntos de parámetros) para el modelo de EDOs.
@@ -54,6 +46,7 @@ class ToyODEEvaluator:
         self.initial_conditions = np.array(config["initial_conditions"], dtype=float)
         self.high_fitness_penalty = config["high_fitness_penalty"]
         self.fitness_penalty_factor = config["fitness_penalty_factor"]
+        self.reached_reward_value = config["reached_reward_value"]
         self.min_production_rate = config["min_production_rate"]
         self.min_degradation_rate = config["min_degradation_rate"]
         self.seed = config["seed"]
@@ -79,8 +72,8 @@ class ToyODEEvaluator:
         # Slicing divide el genoma en tríos (prod, deg, inter por proteína), matemáticamente eficiente para arrays. 
         # Biológicamente, refleja cómo genes codifican tasas (ejemplo: promotores fuertes/débiles en biología molecular)
         # np.maximum previene tasas negativas, que biológicamente no ocurren (ejemplo: degradación no puede ser cero o negativa en modelos realistas).
-        prod = np.maximum(MIN_PRODUCTION_RATE, individual[0::3]) # Tasas de producción
-        deg = np.maximum(MIN_DEGRADATION_RATE, individual[1::3]) # Tasas de degradación
+        prod = np.maximum(min_production_rate, individual[0::3]) # Tasas de producción
+        deg = np.maximum(min_degradation_rate, individual[1::3]) # Tasas de degradación
         # inter modela cómo una proteína afecta la producción de otras, simulando regulación transcripcional (ejemplo: activadores/repressores en redes genéticas).
         # Matemáticamente, es un coeficiente escalar; biológicamente, representa sensibilidad a la actividad total, como en quorum sensing donde moléculas 
         # señalan densidad celular.
@@ -210,7 +203,7 @@ class ToyODEEvaluator:
         return self.fitness_penalty_factor * np.sum(np.abs(individual))
 
     def _calculate_reward_tolerance(self):
-        """Calcula REWARD_TOLERANCE dinámicamente basado en la norma del target y factores de configuración.
+        """Calcula reward_tolerance dinámicamente basado en la norma del target y factores de configuración.
 
         Biológicamente, simula umbrales de activación en redes genéticas, adaptándose a la escala de expresión
         para capturar variabilidad celular real (ej. ruido en transcripción).
@@ -218,7 +211,8 @@ class ToyODEEvaluator:
         base_tolerance = 0.1  # Valor base empírico (10% de desviación aceptable)
         scale_factor = np.linalg.norm(self.target)  # Escala con magnitud del objetivo
         noise_factor = 1 + self.noise_std  # Ajuste por variabilidad biológica/numérica
-        return base_tolerance * scale_factor * noise_factor
+        reward_tolerance = base_tolerance * scale_factor * noise_factor
+        return reward_tolerance
 
     def _calculate_reached_reward(self, solution):
         """Otorga una recompensa si la simulación alcanza el objetivo tempranamente.
@@ -248,7 +242,7 @@ class ToyODEEvaluator:
                     # Modela la ventaja evolutiva de redes genéticas que logran estados deseados rápidamente, como en respuestas inmunes (e.g., activación 
                     # rápida de genes ante patógenos) o desarrollo embrionario (e.g., diferenciación celular oportuna). Una recompensa más negativa 
                     # incentiva eficiencia temporal, reflejando selección natural por mecanismos biológicos ágiles y energéticamente óptimos.
-                    return REACHED_REWARD_VALUE / (t_reached + 1e-6)
+                    return self.reached_reward_value / (t_reached + 1e-6)
         return 0.0
 
     def evaluate(self, individual):

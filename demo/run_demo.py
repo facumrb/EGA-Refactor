@@ -38,6 +38,7 @@ def get_default_config():
             "initial_conditions": [0.1, 0.1, 0.1],
             "high_fitness_penalty": 1e6,
             "fitness_penalty_factor": 0.001,
+            "reached_reward_value": -0.1,
             "min_production_rate": 1e-6,
             "min_degradation_rate": 1e-3,
             "seed": 42,
