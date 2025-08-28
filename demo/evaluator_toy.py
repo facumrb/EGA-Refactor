@@ -72,8 +72,8 @@ class ToyODEEvaluator:
         # Slicing divide el genoma en tríos (prod, deg, inter por proteína), matemáticamente eficiente para arrays. 
         # Biológicamente, refleja cómo genes codifican tasas (ejemplo: promotores fuertes/débiles en biología molecular)
         # np.maximum previene tasas negativas, que biológicamente no ocurren (ejemplo: degradación no puede ser cero o negativa en modelos realistas).
-        prod = np.maximum(self.min_production_rate, individual[0::3]) # Tasas de producción
-        deg = np.maximum(self.min_degradation_rate, individual[1::3]) # Tasas de degradación
+        prod = np.maximum(float(self.min_production_rate), individual[0::3]) # Tasas de producción
+        deg = np.maximum(float(self.min_degradation_rate), individual[1::3]) # Tasas de degradación
         # inter modela cómo una proteína afecta la producción de otras, simulando regulación transcripcional (ejemplo: activadores/repressores en redes genéticas).
         # Matemáticamente, es un coeficiente escalar; biológicamente, representa sensibilidad a la actividad total, como en quorum sensing donde moléculas 
         # señalan densidad celular.
@@ -163,8 +163,8 @@ class ToyODEEvaluator:
             #       y en cada paso, llama a _ode_system para preguntarle "¿hacia dónde vamos ahora?".
             # print("Revisado de individuo en simulate:", individual)
             solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0,
-                                    t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA", 
-                                    dense_output=True)
+                                t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA",
+                                dense_output=True)
             # Comprobar success (atributo estándar de OdeResult)
             if not getattr(solution, "success", True):
                 print(f"Error en la simulación: success={getattr(solution, 'success', None)}; message={getattr(solution,'message',None)}")
@@ -290,7 +290,6 @@ class ToyODEEvaluator:
                 # Registrar diagnóstico y devolver penalización finita + solution None
                 print(f"[evaluate] y_final o solution es None para individual={individual}")
                 return float(self.high_fitness_penalty + penalty), None
-
             # Cálculo de los componentes del fitness a través de métodos especializados
             L2_distance = self._calculate_L2_distance(y_final)
             complexity_penalty = self._calculate_complexity_penalty(individual)
