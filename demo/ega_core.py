@@ -178,6 +178,8 @@ class Individual:
         individual_copy = Individual(self.bounds)
         individual_copy.params = np.array(self.params, copy=True)
         individual_copy.fitness = self.fitness
+        individual_copy.trajectory = self.trajectory
+        individual_copy.solution_times = self.solution_times
         return individual_copy
 
 # -----------------------
