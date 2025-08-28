@@ -36,8 +36,17 @@ if target is None:
     exit(1)
 target = np.array(target)
 
-# Definir etiquetas para cada proteína (asumiendo 3 proteínas)
-proteins = ["Proteína 1", "Proteína 2", "Proteína 3"]
+# Asegurarse de que y_final y target tengan la misma longitud
+if len(y_final) != len(target):
+    print(
+        f"Error: La longitud de la solución final ({len(y_final)}) "
+        f"no coincide con la del target ({len(target)})."
+    )
+    exit(1)
+
+# Definir etiquetas para cada proteína dinámicamente
+num_proteins = len(target)
+proteins = [f"Proteína {i+1}" for i in range(num_proteins)]
 
 # -----------------------------
 # Versión A: Visualización estática con Seaborn (aprovechando pandas)
@@ -61,36 +70,40 @@ plt.tight_layout()
 # plt.savefig("comparacion_target.png", dpi=300)
 plt.show()
 
-# -----------------------------
-# Versión B: Visualización interactiva con Plotly
+"""# -----------------------------
+# Versión B: Visualización interactiva con Plotly (mejorada)
 # -----------------------------
 fig_interactive = go.Figure()
 
-# Añadir barras para el estado simulado
+# Añadir barras para el estado simulado con tooltips enriquecidos
 fig_interactive.add_trace(go.Bar(
     x=proteins,
     y=y_final,
     name="Simulado",
     marker_color="skyblue",
-    hovertemplate="Simulado: %{y}<extra></extra>"
+    hovertemplate="<b>%{x}</b><br>Simulado: %{y:.3f}<extra></extra>"
 ))
-# Añadir barras para el target
+
+# Añadir barras para el target con tooltips enriquecidos
 fig_interactive.add_trace(go.Bar(
     x=proteins,
     y=target,
     name="Target",
     marker_color="salmon",
-    hovertemplate="Target: %{y}<extra></extra>"
+    hovertemplate="<b>%{x}</b><br>Target: %{y:.3f}<extra></extra>"
 ))
 
 fig_interactive.update_layout(
     title="Comparación entre estado final y target",
     xaxis_title="Proteínas",
     yaxis_title="Concentración",
-    barmode="group"
+    barmode="group",
+    hovermode="x"
 )
 
 # Mostrar el gráfico interactivo
 fig_interactive.show()
-# Exportar el gráfico interactivo a HTML (opcional)
+
+# Exportar el gráfico interactivo a HTML para compartir o visualizar en el navegador
 # fig_interactive.write_html("comparacion_target_interactivo.html")
+"""
