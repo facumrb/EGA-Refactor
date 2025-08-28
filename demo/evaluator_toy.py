@@ -72,8 +72,8 @@ class ToyODEEvaluator:
         # Slicing divide el genoma en tríos (prod, deg, inter por proteína), matemáticamente eficiente para arrays. 
         # Biológicamente, refleja cómo genes codifican tasas (ejemplo: promotores fuertes/débiles en biología molecular)
         # np.maximum previene tasas negativas, que biológicamente no ocurren (ejemplo: degradación no puede ser cero o negativa en modelos realistas).
-        prod = np.maximum(min_production_rate, individual[0::3]) # Tasas de producción
-        deg = np.maximum(min_degradation_rate, individual[1::3]) # Tasas de degradación
+        prod = np.maximum(self.min_production_rate, individual[0::3]) # Tasas de producción
+        deg = np.maximum(self.min_degradation_rate, individual[1::3]) # Tasas de degradación
         # inter modela cómo una proteína afecta la producción de otras, simulando regulación transcripcional (ejemplo: activadores/repressores en redes genéticas).
         # Matemáticamente, es un coeficiente escalar; biológicamente, representa sensibilidad a la actividad total, como en quorum sensing donde moléculas 
         # señalan densidad celular.
@@ -161,11 +161,13 @@ class ToyODEEvaluator:
             #       solve_ivp toma estas nuevas derivadas y calcula el estado para el siguiente pequeño paso de tiempo.
             #       Este ciclo se repite una y otra vez. solve_ivp va dando pequeños pasos en el tiempo, desde t_span[0] hasta t_span[1], 
             #       y en cada paso, llama a _ode_system para preguntarle "¿hacia dónde vamos ahora?".
+            # print("Revisado de individuo en simulate:", individual)
             solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0,
                                     t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA", 
                                     dense_output=True)
-            if solution.status != 0:
-                print(f"Error en la simulación (por solution): {solution.message}")
+            # Comprobar success (atributo estándar de OdeResult)
+            if not getattr(solution, "success", True):
+                print(f"Error en la simulación: success={getattr(solution, 'success', None)}; message={getattr(solution,'message',None)}")
                 return None, None
             # 3. Extraer el estado final del sistema.
             # solution.y es la matriz de resultados. [:, -1] es una forma de seleccionar
@@ -177,8 +179,9 @@ class ToyODEEvaluator:
                 np.random.seed(self.seed) # Semilla fija para reproducibilidad del ruido
                 y_final = y_final + np.random.normal(0, self.noise_std, size=y_final.shape)
             return y_final, solution
-        except Exception:
-            # Si la integración numérica falla, se retorna un resultado que indica el fallo.
+        except Exception as error:
+            # Si la integración numérica falla, loguear la excepción para debugging y devolver None
+            print(f"[simulate] Exception during ODE integration: {error}")
             return None, None
 
     def _calculate_L2_distance(self, y_final):
@@ -278,14 +281,15 @@ class ToyODEEvaluator:
         else:
             penalty = 0
 
+        # print("Revisado de individuo.", individual)
+
         try:
             # Estado final del sistema y el objeto de la solución
             y_final, solution = self.simulate(individual)
-            # print(y_final)
-            # print(solution)
             if y_final is None or solution is None:
-                print("Error: y_final o solution es None.")
-                return float(self.high_fitness_penalty + penalty), None  # Penalización alta pero finita
+                # Registrar diagnóstico y devolver penalización finita + solution None
+                print(f"[evaluate] y_final o solution es None para individual={individual}")
+                return float(self.high_fitness_penalty + penalty), None
 
             # Cálculo de los componentes del fitness a través de métodos especializados
             L2_distance = self._calculate_L2_distance(y_final)
@@ -296,7 +300,7 @@ class ToyODEEvaluator:
             fitness = float(L2_distance + complexity_penalty + reached_reward)
             return fitness, solution
         except Exception as error:
-            # loguear error para debugging
+            # loguear error para debugging y devolver penalización finita
             print(f"[Evaluator] excepción al evaluar: {error}")
             return float(self.high_fitness_penalty), None
 

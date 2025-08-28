@@ -55,13 +55,22 @@ def safe_round_tuple(individual_arr, digits=6):
     """
     return tuple([round(float(gen), digits) for gen in individual_arr])
 
-def _evaluator_wrapper(evaluator_and_individual):
+def _evaluator_wrapper(individual_and_evaluator):
     """Envoltorio para llamar al método evaluate del evaluador. Puede ser serializado."""
-    # Desempaqueta los argumentos
-    evaluator, individual = evaluator_and_individual
-    # print(evaluator, individual)
-    # Llama al método evaluate del evaluador
-    return evaluator.evaluate(individual)
+    # Este wrapper ahora espera (params, evaluator_config)
+    individual_params, evaluator_config = individual_and_evaluator
+    try:
+        # Instanciar localmente el evaluador (evita pickling de la instancia completa)
+        local_evaluator = ToyODEEvaluator(evaluator_config)
+        fitness_solution = local_evaluator.evaluate(individual_params)
+        # Asegurar que el resultado sea una tupla (fitness, solution)
+        if isinstance(fitness_solution, tuple):
+            return fitness_solution
+        else:
+            return float(fitness_solution), None
+    except Exception as error:
+        print(f"[wrapper] evaluator falló para params={individual_params}: {error}")
+        return float(evaluator_config.get("high_fitness_penalty", 1e6)), None
 
 # init_worker y _evaluator_wrapper son funciones auxiliares que se utilizan para 
 # inicializar los procesos hijos y evaluar los individuos en paralelo.
@@ -377,7 +386,8 @@ class EGA:
                     """
                 else:
                     eval_needed_individuals.append(individual)
-                    tasks_for_evaluator.append((self.evaluator, individual.decode()))
+                    # pasar SOLO datos serializables: (params, evaluator_config)
+                    tasks_for_evaluator.append((individual.decode(), self.evaluator.config))
 
         if not eval_needed_individuals:
             return
@@ -393,21 +403,31 @@ class EGA:
                 # es donde el programa pasa la mayor parte del tiempo. 
                 # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
                 # en el tiempo total de ejecución.
-                # Asigna los resultados de fitness a los individuos correspondientes y actualiza la caché
-                fitness_results, solution_results = zip(*fitness_solution_results)
-                for individual, fitness, solution in zip(eval_needed_individuals, fitness_results, solution_results):
-                    individual.fitness = float(fitness) if fitness is not None else float('inf')
-                    individual.trajectory = solution.y
-                    individual.solution_times = solution.t
-                    # Si el fitness es infinito, se asume que la evaluación falló.
-                    # En este caso, se asigna un valor alto al fitness para que el individuo sea menos apto.
+                # Normalizar/validar los resultados
+                for individual, results in zip(eval_needed_individuals, fitness_solution_results):
+                    if isinstance(results, tuple):
+                        fitness, solution = results
+                    else:
+                        fitness, solution = float(results), None
+                    # usar high_fitness_penalty (valor finito) en lugar de inf
+                    fitness_value = float(fitness) if fitness is not None else float(self.evaluator.high_fitness_penalty)
+                    individual.fitness = fitness_value
+                    # proteger acceso a solution
+                    if solution is not None:
+                        individual.trajectory = getattr(solution, "y", None)
+                        individual.solution_times = getattr(solution, "t", None)
+                    else:
+                        individual.trajectory = None
+                        individual.solution_times = None
                     key_for_Dictionary = safe_round_tuple(individual.decode())
                     # Se genera una clave única para el genotipo del individuo.
                     self.cache[key_for_Dictionary] = individual.fitness
             except Exception as error:
                 print(f"[EGA Error] Evaluación fallida: {error}")
                 for i, individual in enumerate(eval_needed_individuals):
-                    individual.fitness = float('inf')
+                    individual.fitness = float(self.evaluator.high_fitness_penalty)
+                    individual.trajectory = None
+                    individual.solution_times = None
                     key = safe_round_tuple(individual.decode())
                     self.cache[key] = individual.fitness
         
@@ -660,11 +680,11 @@ class EGA:
         final = {
             "history": self.history,
             "best": {
-                "params": self.population[0].params.tolist(),
-                "fitness": float(self.population[0].fitness),
-                "t": self.population[0].solution_times.tolist(),      # Asegúrate de que sea serializable (lista)
-                "y": self.population[0].trajectory.tolist() # Asegúrate de que sea serializable (lista)
-            },
+            "params": self.population[0].params.tolist(),
+            "fitness": float(self.population[0].fitness),
+            "t": (self.population[0].solution_times.tolist() if self.population[0].solution_times is not None else None),
+            "y": (self.population[0].trajectory.tolist() if self.population[0].trajectory is not None else None)
+        },
             "config": self.config,
             "total_time_s": total_time
         }
