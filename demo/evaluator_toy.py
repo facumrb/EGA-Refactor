@@ -167,7 +167,7 @@ class ToyODEEvaluator:
                                     dense_output=True)
             # Comprobar success (atributo estándar de OdeResult)
             if not getattr(solution, "success", True):
-                print(f"Error en la simulación: success={getattr(solution, 'success', None)}; message={getattr(solution,'message',None)}")
+                print(f"[simulate] Error en la simulación: success={getattr(solution, 'success', None)}; message={getattr(solution,'message',None)}")
                 return None, None
             # 3. Extraer el estado final del sistema.
             # solution.y es la matriz de resultados. [:, -1] es una forma de seleccionar
@@ -271,7 +271,7 @@ class ToyODEEvaluator:
 
         # validaciones básicas
         if self.bounds is None or individual.shape[0] != self.bounds.shape[0]:
-            print("Error: bounds no están definidos o no coinciden con la longitud del individuo.")
+            print("[evaluate]Error: bounds no están definidos o no coinciden con la longitud del individuo.")
             return (float(self.high_fitness_penalty), None)
 
         # Soft constraint para bounds en lugar de 'inf'

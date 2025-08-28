@@ -21,6 +21,7 @@ def load_config(path):
     """Carga un archivo de configuración en formato YAML."""
     with open(path, "r") as filehandler:
         config = yaml.safe_load(filehandler)
+        # config = yaml.load(filehandler, Loader=yaml.SafeLoader)
     return config if config is not None else {}
 
 def get_default_config():
@@ -152,5 +153,5 @@ if __name__ == "__main__":
     try:
         main()
     except (FileNotFoundError, ValueError, TypeError, yaml.YAMLError) as error:
-        print(f"ERROR: {error}", file=sys.stderr)
+        print(f"[run_demo] ERROR: {error}", file=sys.stderr)
         sys.exit(1)

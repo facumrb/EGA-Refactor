@@ -392,7 +392,7 @@ class EGA:
         if not eval_needed_individuals:
             return
 
-        fitness_results = []
+        fitness_solution_results = []
         if tasks_for_evaluator:
             # Ejecuta las evaluaciones en paralelo usando el wrapper
             # Ejecuta las evaluaciones en paralelo usando el wrapper
@@ -423,7 +423,7 @@ class EGA:
                     # Se genera una clave única para el genotipo del individuo.
                     self.cache[key_for_Dictionary] = individual.fitness
             except Exception as error:
-                print(f"[EGA Error] Evaluación fallida: {error}")
+                print(f"[eval_pop Error] Evaluación fallida: {error}")
                 for i, individual in enumerate(eval_needed_individuals):
                     individual.fitness = float(self.evaluator.high_fitness_penalty)
                     individual.trajectory = None
