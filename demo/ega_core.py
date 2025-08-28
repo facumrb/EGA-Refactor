@@ -662,7 +662,7 @@ class EGA:
             "best": {
                 "params": self.population[0].params.tolist(),
                 "fitness": float(self.population[0].fitness),
-                "t": self.population[0].solution_times,      # Asegúrate de que sea serializable (lista)
+                "t": self.population[0].solution_times.tolist(),      # Asegúrate de que sea serializable (lista)
                 "y": self.population[0].trajectory.tolist() # Asegúrate de que sea serializable (lista)
             },
             "config": self.config,
