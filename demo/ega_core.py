@@ -681,12 +681,18 @@ class EGA:
         # final save
         final = {
             "history": self.history,
+            "population": [{
+                "params": individual.params.tolist(),
+                "fitness": float(individual.fitness),
+                "t": (individual.solution_times.tolist() if individual.solution_times is not None else None),
+                "y": (individual.trajectory.tolist() if individual.trajectory is not None else None)
+            } for individual in self.population],
             "best": {
-            "params": self.population[0].params.tolist(),
-            "fitness": float(self.population[0].fitness),
-            "t": (self.population[0].solution_times.tolist() if self.population[0].solution_times is not None else None),
-            "y": (self.population[0].trajectory.tolist() if self.population[0].trajectory is not None else None)
-        },
+                "params": self.population[0].params.tolist(),
+                "fitness": float(self.population[0].fitness),
+                "t": (self.population[0].solution_times.tolist() if self.population[0].solution_times is not None else None),
+                "y": (self.population[0].trajectory.tolist() if self.population[0].trajectory is not None else None)
+            },
             "config": self.config,
             "total_time_s": total_time
         }
