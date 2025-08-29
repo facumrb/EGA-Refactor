@@ -23,8 +23,7 @@ if not y_values:
     print("No se encontraron datos de las concentraciones en la solución.")
     exit(1)
 # Se asume que y_values es una lista de listas y tomamos el estado final (última lista)
-y_final = y_values[-1]
-y_final = np.array(y_final)
+y_final = [y_values[0][-1], y_values[1][-1], y_values[2][-1]]
 
 # Cargar la configuración para obtener el target. Se usa el archivo config.yaml
 config_path = os.path.join("config.yaml")
@@ -40,7 +39,7 @@ target = np.array(target)
 if len(y_final) != len(target):
     print(
         f"Error: La longitud de la solución final ({len(y_final)}) "
-        f"no coincide con la del target ({len(target)})."
+        f"no coincide con la del target ({len(target)}).", y_final, target
     )
     exit(1)
 
