@@ -46,7 +46,7 @@ if len(y_final) != len(target):
 # Definir etiquetas para cada proteína dinámicamente
 num_proteins = len(target)
 proteins = [f"Proteína {i+1}" for i in range(num_proteins)]
-
+# """
 # -----------------------------
 # Versión A: Visualización estática con Seaborn (aprovechando pandas)
 # -----------------------------
@@ -69,7 +69,8 @@ plt.tight_layout()
 # plt.savefig("comparacion_target.png", dpi=300)
 plt.show()
 
-"""# -----------------------------
+# """
+# -----------------------------
 # Versión B: Visualización interactiva con Plotly (mejorada)
 # -----------------------------
 fig_interactive = go.Figure()
@@ -105,4 +106,4 @@ fig_interactive.show()
 
 # Exportar el gráfico interactivo a HTML para compartir o visualizar en el navegador
 # fig_interactive.write_html("comparacion_target_interactivo.html")
-"""
+# """
