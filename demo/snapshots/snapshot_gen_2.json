@@ -568,7 +568,7 @@
   "seed": 42,
   "config": {
     "populationSize": 50,
-    "generations": 10,
+    "generations": 80,
     "crossover_rate": 0.8,
     "mutation_rate": 0.15,
     "elite_size": 3,

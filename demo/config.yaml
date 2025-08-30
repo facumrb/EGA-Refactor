@@ -160,7 +160,7 @@ ega_params:
   # pero limitado por el costo computacional del evaluador ODE.
 
   # Número de generaciones: cuántas iteraciones ejecutará el algoritmo.
-  generations: 10 # Valor sugerido: 40–100 (predet: 25)
+  generations: 80 # Valor sugerido: 40–100 (predet: 25)
   # Debe permitir convergencia razonable con el budget computacional.
 
   # Tasa de cruzamiento: probabilidad de que dos padres se crucen para crear descendencia.
