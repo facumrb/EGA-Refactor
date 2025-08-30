@@ -51,7 +51,7 @@ proteins = [f"Proteína {i+1}" for i in range(num_proteins)]
 # Crear DataFrame para Seaborn
 data = {
     "Proteína": proteins * 2,
-    "Concentración": np.concatenate([y_final, target]),
+    "Concentración de las proteínas (TFs)": np.concatenate([y_final, target]),
     "Tipo": ["Simulado"] * len(proteins) + ["Target"] * len(proteins)
 }
 df = pd.DataFrame(data)
@@ -60,7 +60,7 @@ df = pd.DataFrame(data)
 sns.set_theme(style="whitegrid")
 
 plt.figure(figsize=(8,6))
-ax = sns.barplot(x="Proteína", y="Concentración", hue="Tipo", data=df, palette=["skyblue", "salmon"])
+ax = sns.barplot(x="Proteína", y="Concentración de las proteínas (TFs)", hue="Tipo", data=df, palette=["skyblue", "salmon"])
 ax.set_title("Comparación entre estado final y target")
 plt.tight_layout()
 plt.show()
@@ -92,7 +92,7 @@ fig_interactive.add_trace(go.Bar(
 fig_interactive.update_layout(
     title="Comparación entre estado final y target",
     xaxis_title="Proteínas",
-    yaxis_title="Concentración",
+    yaxis_title="Concentración de las proteínas (TFs)",
     barmode="group",
     hovermode="x"
 )

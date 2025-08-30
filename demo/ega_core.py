@@ -670,18 +670,35 @@ class EGA:
             original_noise_std = self.evaluator.noise_std
             self.evaluator.noise_std *= noise_std_factor
 
-            spaghetti_results = []
+            simulations_data = []
             for _ in range(num_simulations):
+                # Ejecutar la simulación con el individuo y el ruido configurado
                 _, solution = self.evaluator.simulate(best_individual.decode())
-                # print("Simulated with noise, got solution:", solution)
-                if solution:
-                    spaghetti_results.append(solution.y.tolist())
-            
-            self.evaluator.noise_std = original_noise_std # Restaurar
+                if solution and hasattr(solution, 'y') and hasattr(solution, 't'):
+                    simulations_data.append({
+                        "y": solution.y.tolist(),
+                        "t": solution.t.tolist()
+                    })
+                else:
+                    simulations_data.append({
+                        "y": None,
+                        "t": None
+                    })
+
+            # spaghetti
+            spaghetti_results = {
+                "num_simulations": num_simulations,
+                "noise_std_factor": noise_std_factor,
+                "original_noise_std": original_noise_std,
+                "simulations": simulations_data
+            }
+
+            # Restaurar el valor original de ruido en el evaluador
+            self.evaluator.noise_std = original_noise_std
 
         self.population.sort(key=lambda x: x.fitness)
 
-        # final save
+        # --- Preparación del resultado final ---
         final = {
             "history": self.history,
             "population": [{

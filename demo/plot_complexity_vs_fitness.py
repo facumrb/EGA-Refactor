@@ -85,7 +85,7 @@ plt.ylabel("Fitness")
 plt.title("Dispersión: Fitness vs Complejidad")
 plt.grid(True)
 plt.tight_layout()
-# plt.savefig("fitness_vs_complexity.png", dpi=300)
+# plt.savefig("fitness_vs_complexity.png", dpi=600)
 plt.show()
 """
 # Alternativa: Visualización con seaborn.scatterplot
@@ -96,7 +96,7 @@ sns.scatterplot(x=complexity, y=fitness, color="darkred", s=100, edgecolor="w", 
 # Resaltar el punto de menor fitness (mejor) con complejidad aceptable
 plt.scatter([complexity[best_idx]], [fitness[best_idx]], color="limegreen", s=150, edgecolor="black", zorder=5, label="Mejor (aceptable)")
 
-plt.xlabel("Complejidad (Suma de |params|)")
+plt.xlabel("Complejidad: suma de la influencia de cada componente en la red de expresión génica")
 plt.ylabel("Fitness")
 plt.title("Dispersión: Fitness vs Complejidad")
 plt.legend()

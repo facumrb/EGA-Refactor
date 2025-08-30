@@ -33,18 +33,18 @@ protein3 = y_values[2]
 # Opción 1: Visualización estática con matplotlib
 # -----------------------------
 plt.figure(figsize=(10, 6))
-plt.plot(time, protein1, label="Proteína 1", marker="o")
-plt.plot(time, protein2, label="Proteína 2", marker="s")
-plt.plot(time, protein3, label="Proteína 3", marker="^")
+plt.plot(time, protein1, label="Proteína 1")
+plt.plot(time, protein2, label="Proteína 2")
+plt.plot(time, protein3, label="Proteína 3")
 plt.xlabel("Tiempo")
-plt.ylabel("Concentración")
+plt.ylabel("Concentración de las proteínas (TFs)")
 plt.title("Trayectoria temporal del mejor individuo")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
 # plt.savefig("trayectoria_mejor_individuo.png", dpi=600)
 plt.show()
-
+"""
 # -----------------------------
 # Opción 2: Visualización interactiva con Plotly
 # -----------------------------
@@ -57,7 +57,7 @@ fig.add_trace(go.Scatter(x=time, y=protein3,
                          mode="lines+markers", name="Proteína 3"))
 fig.update_layout(title="Trayectoria temporal del mejor individuo",
                   xaxis_title="Tiempo",
-                  yaxis_title="Concentración",
+                  yaxis_title="Concentración de las proteínas (TFs)",
                   hovermode="x unified")
 
 # Agregar menú interactivo para filtrar las trazas de proteínas
@@ -114,4 +114,5 @@ finally:
 
 
 # Exportar el gráfico interactivo a un archivo HTML
-# fig.write_html("trayectoria_interactiva.html")
+fig.write_html("trayectoria_interactiva.html")
+"""

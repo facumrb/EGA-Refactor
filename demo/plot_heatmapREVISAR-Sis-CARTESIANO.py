@@ -44,6 +44,9 @@ plt.ylabel("Generación")
 plt.title("Heatmap de Evolución de Parámetros por Generación")
 plt.tight_layout()
 plt.show()
+
+# Guardar la figura si es necesario
+# plt.savefig("parameter_heatmap.png", dpi=600)
 # """
 """
 # Crear el heatmap usando plotly
@@ -54,10 +57,7 @@ fig = px.imshow(parameter_matrix,
                 color_continuous_scale="Viridis",
                 text_auto=True)
 fig.update_xaxes(side="top")
-"""
-# Guardar la figura si es necesario
-# plt.savefig("parameter_heatmap.png", dpi=600)
-"""
+
 # Mostrar el gráfico interactivo guardándolo en un archivo HTML
 output_path = "snapshots/heatmap.html"
 fig.write_html(output_path)
