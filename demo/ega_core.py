@@ -301,41 +301,44 @@ class EGA:
     y repite el proceso durante un número determinado de generaciones.
     """
 
-    def __init__(self, config: Dict, evaluator):
+    def __init__(self, configEGA: Dict, configSpaghetti: Dict, evaluator):
         """
         Inicializa el algoritmo genético.
         Crea la población inicial de individuos aleatorios (dentro de los bounds definidos).
 
         Args:
-            config (Dict): Un diccionario con todos los parámetros de configuración del 
+            configEGA (Dict): Un diccionario con todos los parámetros de configuración del 
                            algoritmo (tamaño de población, generaciones, tasas, etc.).
+            configSpaghetti (Dict): Un diccionario con los parámetros de configuración del
+                                   Spaghetti Plot.
             evaluator: Un objeto que sabe cómo evaluar a un individuo. Debe tener un 
                        método 'evaluate(params)' que devuelva un valor de 'fitness' 
                        (donde un número más bajo es mejor).
         """
-        self.config = dict(config)
+        self.configEGA = dict(configEGA)
+        self.configSpaghetti = dict(configSpaghetti)
         self.evaluator = evaluator
-        self.pop_size = int(config.get("populationSize", 30))
-        self.generations = int(config.get("generations", 25))
-        self.crossover_rate = float(config.get("crossover_rate", 0.8))
-        self.mutation_rate = float(config.get("mutation_rate", 0.15))
-        self.elite_size = int(config.get("elite_size", 3))
-        self.bounds = np.array(config["bounds"], dtype=float)
-        self.alpha_blx = float(config.get("alpha_blx", 0.15))
-        self.mutation_scale = np.array(config.get("mutation_scale", [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]), dtype=float)
-        self.failure_rate_threshold_increase = float(config.get('failure_rate_threshold_increase', 0.3))
-        self.failure_rate_threshold_decrease = float(config.get('failure_rate_threshold_decrease', 0.05))
-        self.timeout_increase_factor = float(config.get('timeout_increase_factor', 2.0))
-        self.timeout_decrease_factor = float(config.get('timeout_decrease_factor', 0.9))
-        self.base_timeout = float(config.get("base_timeout", 25.0))
-        self.max_timeout = float(config.get("max_timeout", 300.0))
-        self.timeout = float(config.get("timeout", 25.0))
-        self.processes = int(max(1, min(cpu_count()-1, config.get("processes", cpu_count()-1))))
-        self.seed = int(config.get("seed", 42))
+        self.pop_size = int(configEGA.get("populationSize", 30))
+        self.generations = int(configEGA.get("generations", 25))
+        self.crossover_rate = float(configEGA.get("crossover_rate", 0.8))
+        self.mutation_rate = float(configEGA.get("mutation_rate", 0.15))
+        self.elite_size = int(configEGA.get("elite_size", 3))
+        self.bounds = np.array(configEGA["bounds"], dtype=float)
+        self.alpha_blx = float(configEGA.get("alpha_blx", 0.15))
+        self.mutation_scale = np.array(configEGA.get("mutation_scale", [0.05,0.05,0.2, 0.05,0.05,0.2, 0.05,0.05,0.2]), dtype=float)
+        self.failure_rate_threshold_increase = float(configEGA.get('failure_rate_threshold_increase', 0.3))
+        self.failure_rate_threshold_decrease = float(configEGA.get('failure_rate_threshold_decrease', 0.05))
+        self.timeout_increase_factor = float(configEGA.get('timeout_increase_factor', 2.0))
+        self.timeout_decrease_factor = float(configEGA.get('timeout_decrease_factor', 0.9))
+        self.base_timeout = float(configEGA.get("base_timeout", 25.0))
+        self.max_timeout = float(configEGA.get("max_timeout", 300.0))
+        self.timeout = float(configEGA.get("timeout", 25.0))
+        self.processes = int(max(1, min(cpu_count()-1, configEGA.get("processes", cpu_count()-1))))
+        self.seed = int(configEGA.get("seed", 42))
         random.seed(self.seed)
         np.random.seed(self.seed)
-        self.tournament_k = int(config.get("tournament_k", 3))
-        self.strategy = config.get("strategy", "uniform")
+        self.tournament_k = int(configEGA.get("tournament_k", 3))
+        self.strategy = configEGA.get("strategy", "uniform")
         
         self.cache = {}  # caching evaluations: key -> fitness
         """self.previous_avg_fitness = None"""
@@ -645,10 +648,10 @@ class EGA:
                 "best_params": self.population[0].params.tolist(),
                 "pop_params": [individual.params.tolist() for individual in self.population],
                 "seed": self.seed,
-                "config": self.config
+                "config": self.configEGA
             }
-            with open(os.path.join(snapshot_dir, f"snapshot_gen_{gen}.json"), "w") as fh:
-                json.dump(snapshot, fh, indent=2)
+            with open(os.path.join(snapshot_dir, f"snapshot_gen_{gen}.json"), "w") as filehandler:
+                json.dump(snapshot, filehandler, indent=2)
 
             if verbose:
                 min_fitness = snapshot['min']
@@ -661,16 +664,16 @@ class EGA:
         best_individual = self.population[0]
 
         # --- Spaghetti Plot Simulation ---
-        spaghetti_config = self.config.get("spaghetti_plot", {})
-        if spaghetti_config.get("enabled", False):
-            num_simulations = spaghetti_config.get("num_simulations", 100)
-            noise_std_factor = spaghetti_config.get("noise_std_factor", 0.5)
+        if self.configSpaghetti.get("enabled", False):
+            num_simulations = self.configSpaghetti.get("num_simulations", 100)
+            noise_std_factor = self.configSpaghetti.get("noise_std_factor", 0.5)
             original_noise_std = self.evaluator.noise_std
             self.evaluator.noise_std *= noise_std_factor
 
             spaghetti_results = []
             for _ in range(num_simulations):
-                _, solution = self.evaluator.simulate(best_individual.params)
+                _, solution = self.evaluator.simulate(best_individual.decode())
+                # print("Simulated with noise, got solution:", solution)
                 if solution:
                     spaghetti_results.append(solution.y.tolist())
             
@@ -693,13 +696,18 @@ class EGA:
                 "t": (self.population[0].solution_times.tolist() if self.population[0].solution_times is not None else None),
                 "y": (self.population[0].trajectory.tolist() if self.population[0].trajectory is not None else None)
             },
-            "config": self.config,
+            "config": self.configEGA,
             "total_time_s": total_time
         }
+
         if 'spaghetti_results' in locals():
             final["spaghetti_results"] = spaghetti_results
-        with open(os.path.join(snapshot_dir, "final_result.json"), "w") as fh:
-            json.dump(final, fh, indent=2)
+        with open(os.path.join(snapshot_dir, "final_result.json"), "w") as file_handle:
+            json.dump(final, file_handle, indent=2)
+
+        # print("spaghetti:", len(final.get("spaghetti_results", [])), "simulations")
+        # print("Contenido de spaghetti_results (primeras 2 simulaciones):", final.get("spaghetti_results", [])[:2])
+
         # close pool
         self.pool.close()
         self.pool.join()
