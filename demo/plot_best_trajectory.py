@@ -28,7 +28,7 @@ if not time or not y_values:
 protein1 = y_values[0]
 protein2 = y_values[1]
 protein3 = y_values[2]
-
+"""
 # -----------------------------
 # Opción 1: Visualización estática con matplotlib
 # -----------------------------
@@ -114,5 +114,5 @@ finally:
 
 
 # Exportar el gráfico interactivo a un archivo HTML
-fig.write_html("trayectoria_interactiva.html")
-"""
+fig.write_html("./visuals/best_trajectory.html", auto_open=True)
+# """

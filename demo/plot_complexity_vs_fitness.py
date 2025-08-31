@@ -42,7 +42,7 @@ if eligible_indices:
 else:
     best_idx = np.argmin(fitness)
 
-""" REVISAR:
+"""
 La "complejidad", definida como la suma de los valores absolutos de los parámetros, puede interpretarse biológicamente 
 como una medida global de la intensidad o magnitud de las interacciones regulatorias en el sistema. Este valor refleja 
 cuán fuerte o diversa es la influencia de cada componente en la red de expresión génica, lo que podría relacionarse 

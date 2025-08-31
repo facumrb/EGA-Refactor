@@ -170,6 +170,6 @@ fig = go.Figure(data=[*edge_traces, node_trace],
             )
 
 # Guardar y mostrar
-output_path = "./gene_network.html"
-fig.write_html(output_path)
+output_path = "./visuals/gene_network_final_state.html"
+fig.write_html(output_path, auto_open=True)
 print(f"Grafo de la red génica guardado en: {os.path.abspath(output_path)}")

@@ -42,7 +42,7 @@ except (KeyError, IndexError, TypeError):
 
 # Generar un colormap para distinguir proteínas
 colors = plt.cm.viridis(np.linspace(0, 1, num_proteins))
-
+"""
 # ------------------------------
 # Opción A: Matplotlib con líneas traslúcidas
 # ------------------------------
@@ -123,5 +123,4 @@ finally:
     sys.stderr = original_stderr
 
 # Exportar el gráfico interactivo a un archivo HTML
-# fig.write_html("spaghetti_interactivo.html")
-"""
+fig.write_html("./visuals/spaghetti.html", auto_open=True)

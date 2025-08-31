@@ -20,8 +20,8 @@ if not snapshot_files:
 parameter_matrix = []
 
 for file in snapshot_files:
-    with open(file, "r") as f:
-        data = json.load(f)
+    with open(file, "r") as filehadler:
+        data = json.load(filehadler)
     # Se asume que cada snapshot tiene la clave "pop_params" que es una lista de listas,
     # donde cada lista interna representa los parámetros de un individuo.
     pop_params = data.get("pop_params", None)
@@ -33,33 +33,44 @@ for file in snapshot_files:
     parameter_matrix.append(avg_params)
 
 parameter_matrix = np.array(parameter_matrix)
-# """
+
 # Crear el heatmap usando seaborn
 plt.figure(figsize=(12, 8))
 # cmap=[coolwarm, viridis, plasma, inferno, magma, cividis], annot=[True, False]
 # Para un estudio científico, se recomienda usar cmap="magma" o "viridis" y annot=False
 heatmap = sns.heatmap(parameter_matrix, cmap="viridis", annot=False, fmt=".2f")
-plt.xlabel("Índice del Parámetro")
+plt.xlabel("Parámetros de producción (1, 4, 7), degradación (2, 5, 8) e interacción (3, 6, 9)")
 plt.ylabel("Generación")
 plt.title("Heatmap de Evolución de Parámetros por Generación")
+# Añade estas líneas para modificar los ticks de los ejes
+plt.xticks(ticks=np.arange(0.5, parameter_matrix.shape[1] + 0.5, 1), labels=np.arange(1, parameter_matrix.shape[1] + 1, 1))
+plt.yticks(ticks=np.arange(0.5, parameter_matrix.shape[0] + 0.5, 1), labels=np.arange(1, parameter_matrix.shape[0] + 1, 1)[::-1])
 plt.tight_layout()
 plt.show()
 
 # Guardar la figura si es necesario
-# plt.savefig("parameter_heatmap.png", dpi=600)
-# """
+# plt.savefig("./visuals/heatmap.png", dpi=600)
+
+
 """
-# Crear el heatmap usando plotly
+# Para el heatmap de plotly (versión interactiva):
 fig = px.imshow(parameter_matrix, 
                 labels=dict(x="Índice del Parámetro", y="Generación", color="Media valor"),
-                x=[f"param_{i}" for i in range(parameter_matrix.shape[1])],
-                y=[f"Gen {i}" for i in range(parameter_matrix.shape[0])],
+                x=[str(i) for i in range(1, parameter_matrix.shape[1]+1)],  # Eje X de 1 a 9
+                y=[str(i) for i in range(1, parameter_matrix.shape[0]+1)][::-1],  # Eje Y de 1 a 80
                 color_continuous_scale="Viridis",
                 text_auto=True)
 fig.update_xaxes(side="top")
 
+fig.update_layout(
+    autosize=True, # Habilita el ajuste automático
+    width=None,    # Permite que el ancho se ajuste automáticamente
+    height=None,   # Permite que la altura se ajuste automáticamente
+    margin=dict(l=50, r=50, b=50, t=50)  # Ajusta los márgenes si es necesario
+)
+
 # Mostrar el gráfico interactivo guardándolo en un archivo HTML
-output_path = "snapshots/heatmap.html"
+output_path = "visuals/heatmap.html"
 fig.write_html(output_path)
 
 print(f"Gráfico guardado en: {os.path.abspath(output_path)}")

@@ -168,5 +168,5 @@ if __name__ == "__main__":
     )
 
     # Guardar la animación en un archivo HTML
-    fig.write_html("gene_network_animation.html", auto_open=True)
-    print("Animación guardada en gene_network_animation.html")
+    fig.write_html("./visuals/gene_network_transition.html", auto_open=True)
+    print("Animación guardada en gene_network_transition.html")

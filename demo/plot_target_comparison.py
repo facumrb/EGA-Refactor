@@ -44,7 +44,7 @@ if len(y_final) != len(target):
 
 num_proteins = len(target)
 proteins = [f"Proteína {i+1}" for i in range(num_proteins)]
-
+"""
 # -----------------------------
 # Versión A: Visualización estática con Seaborn
 # -----------------------------
@@ -69,10 +69,10 @@ plt.show()
 # -----------------------------
 # Versión B: Visualización interactiva con Plotly
 # -----------------------------
-fig_interactive = go.Figure()
+fig = go.Figure()
 
 # Añadir barras para el estado simulado
-fig_interactive.add_trace(go.Bar(
+fig.add_trace(go.Bar(
     x=proteins,
     y=y_final,
     name="Simulado",
@@ -81,28 +81,30 @@ fig_interactive.add_trace(go.Bar(
 ))
 
 # Añadir barras para el target
-fig_interactive.add_trace(go.Bar(
+fig.add_trace(go.Bar(
     x=proteins,
     y=target,
     name="Target",
     marker_color="salmon",
     hovertemplate="<b>%{x}</b><br>Target: %{y:.3f}<extra></extra>"
 ))
-
-fig_interactive.update_layout(
+"""
+fig.update_layout(
     title="Comparación entre estado final y target",
-    xaxis_title="Proteínas",
+    xaxis_title="",
     yaxis_title="Concentración de las proteínas (TFs)",
     barmode="group",
     hovermode="x"
 )
-
+"""
 # Mostrar el gráfico interactivo guardándolo en un archivo HTML
 output_path = "snapshots/target_comparison.html"
-fig_interactive.write_html(output_path)
+fig.write_html(output_path)
 
 print(f"Gráfico guardado en: {os.path.abspath(output_path)}")
 
 # Mostrar el gráfico interactivo
-# fig_interactive.show()
-"""
+fig.show()
+
+# Guardar la figura como HTML
+fig.write_html("./visuals/target_comparison.html", auto_open=True)

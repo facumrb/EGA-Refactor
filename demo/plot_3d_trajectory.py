@@ -52,9 +52,7 @@ def plot_3d_trajectory(file_path="./snapshots/final_result.json"):
     )
 
     # Guardar la figura como HTML
-    output_file = "gene_network_3d_trajectory.html"
-    fig.write_html(output_file, auto_open=True)
-    print(f"Visualización 3D guardada en {output_file}")
+    fig.write_html("./visuals/3d_trajectory.html", auto_open=True)
 
 if __name__ == "__main__":
     plot_3d_trajectory()
