@@ -140,14 +140,18 @@ def main():
     """
     
     # Crear y ejecutar el algoritmo genético
-    ega = EGA(config["ega_params"], evaluator=evaluator)
+    ega = EGA(config["ega_params"], config["spaghetti_plot"], evaluator=evaluator)
     results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
     
+    
     # Imprimir resultados
-    print("Mejor solución encontrada:")
-    pprint.pprint(results["best"])
-    print("Tiempo total (s):")
-    pprint.pprint(results["total_time_s"])
+    print("Mejor fitness encontrada:")
+    pprint.pprint(results["best"]["fitness"])
+    # print("Mejor trayectoria encontrada:")
+    # pprint.pprint(results["best"]["trajectory"])
+    # print("Tiempo total (s):")
+    # pprint.pprint(results["total_time_s"])
+    
     
 if __name__ == "__main__":
     try:

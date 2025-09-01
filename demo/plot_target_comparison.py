@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 # -----------------------------
 # Paso 1: Cargar la solución final y la configuración
 # -----------------------------
-# Cargar el archivo final_result.json (se genera en snapshots al terminar run_demo.py)
+# Cargar el archivo final_result.json
 snapshot_dir = "snapshots"
 final_result_path = os.path.join(snapshot_dir, "final_result.json")
 with open(final_result_path, "r") as f:
@@ -22,10 +22,10 @@ y_values = best_solution.get("y", [])
 if not y_values:
     print("No se encontraron datos de las concentraciones en la solución.")
     exit(1)
-# Se asume que y_values es una lista de listas y tomamos el estado final (última lista)
+
 y_final = [y_values[0][-1], y_values[1][-1], y_values[2][-1]]
 
-# Cargar la configuración para obtener el target. Se usa el archivo config.yaml
+# Cargar la configuración para obtener el target
 config_path = os.path.join("config.yaml")
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
@@ -35,7 +35,6 @@ if target is None:
     exit(1)
 target = np.array(target)
 
-# Asegurarse de que y_final y target tengan la misma longitud
 if len(y_final) != len(target):
     print(
         f"Error: La longitud de la solución final ({len(y_final)}) "
@@ -43,17 +42,16 @@ if len(y_final) != len(target):
     )
     exit(1)
 
-# Definir etiquetas para cada proteína dinámicamente
 num_proteins = len(target)
 proteins = [f"Proteína {i+1}" for i in range(num_proteins)]
-
+"""
 # -----------------------------
-# Versión A: Visualización estática con Seaborn (aprovechando pandas)
+# Versión A: Visualización estática con Seaborn
 # -----------------------------
 # Crear DataFrame para Seaborn
 data = {
     "Proteína": proteins * 2,
-    "Concentración": np.concatenate([y_final, target]),
+    "Concentración de las proteínas (TFs)": np.concatenate([y_final, target]),
     "Tipo": ["Simulado"] * len(proteins) + ["Target"] * len(proteins)
 }
 df = pd.DataFrame(data)
@@ -62,20 +60,19 @@ df = pd.DataFrame(data)
 sns.set_theme(style="whitegrid")
 
 plt.figure(figsize=(8,6))
-ax = sns.barplot(x="Proteína", y="Concentración", hue="Tipo", data=df, palette=["skyblue", "salmon"])
+ax = sns.barplot(x="Proteína", y="Concentración de las proteínas (TFs)", hue="Tipo", data=df, palette=["skyblue", "salmon"])
 ax.set_title("Comparación entre estado final y target")
 plt.tight_layout()
-# Guardar la imagen en alta resolución
-# plt.savefig("comparacion_target.png", dpi=300)
 plt.show()
 
-"""# -----------------------------
-# Versión B: Visualización interactiva con Plotly (mejorada)
+"""
 # -----------------------------
-fig_interactive = go.Figure()
+# Versión B: Visualización interactiva con Plotly
+# -----------------------------
+fig = go.Figure()
 
-# Añadir barras para el estado simulado con tooltips enriquecidos
-fig_interactive.add_trace(go.Bar(
+# Añadir barras para el estado simulado
+fig.add_trace(go.Bar(
     x=proteins,
     y=y_final,
     name="Simulado",
@@ -83,26 +80,31 @@ fig_interactive.add_trace(go.Bar(
     hovertemplate="<b>%{x}</b><br>Simulado: %{y:.3f}<extra></extra>"
 ))
 
-# Añadir barras para el target con tooltips enriquecidos
-fig_interactive.add_trace(go.Bar(
+# Añadir barras para el target
+fig.add_trace(go.Bar(
     x=proteins,
     y=target,
     name="Target",
     marker_color="salmon",
     hovertemplate="<b>%{x}</b><br>Target: %{y:.3f}<extra></extra>"
 ))
-
-fig_interactive.update_layout(
+"""
+fig.update_layout(
     title="Comparación entre estado final y target",
-    xaxis_title="Proteínas",
-    yaxis_title="Concentración",
+    xaxis_title="",
+    yaxis_title="Concentración de las proteínas (TFs)",
     barmode="group",
     hovermode="x"
 )
+"""
+# Mostrar el gráfico interactivo guardándolo en un archivo HTML
+output_path = "snapshots/target_comparison.html"
+fig.write_html(output_path)
+
+print(f"Gráfico guardado en: {os.path.abspath(output_path)}")
 
 # Mostrar el gráfico interactivo
-fig_interactive.show()
+fig.show()
 
-# Exportar el gráfico interactivo a HTML para compartir o visualizar en el navegador
-# fig_interactive.write_html("comparacion_target_interactivo.html")
-"""
+# Guardar la figura como HTML
+fig.write_html("./visuals/target_comparison.html", auto_open=True)
