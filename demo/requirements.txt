@@ -6,4 +6,7 @@ plotly
 nbformat>=4.2.0
 seaborn
 pandas
-networkx # Se quiere usar en Red Génica 2D
+networkx
+voila>=0.4.0
+jupyterlab
+ipywidgets
