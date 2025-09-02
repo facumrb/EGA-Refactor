@@ -59,7 +59,7 @@ evaluator_params:
   min_degradation_rate: 1e-3
   min_production_rate: 1e-6
   noise_std: 0.05
-  reached_reward_value: -0.1
+  reached_reward_value: -0.01
   seed: 42
   t_span:
   - 0

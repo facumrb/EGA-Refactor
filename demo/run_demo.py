@@ -151,7 +151,8 @@ def main():
     # pprint.pprint(results["best"]["trajectory"])
     # print("Tiempo total (s):")
     # pprint.pprint(results["total_time_s"])
-    
+
+    return results
     
 if __name__ == "__main__":
     try:
