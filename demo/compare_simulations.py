@@ -41,7 +41,7 @@ def evaluate_simulation(results, target_values, generations, max_generations):
     
     # Calcular distancia a los valores objetivo
     target_distance = np.linalg.norm(np.array(final_y_values) - np.array(target_values))
-    target_distance = calculate_target_distance(final_y_values, target_values)
+    # target_distance = calculate_target_distance(final_y_values, target_values)
     
     # Pesos adaptativos basados en el número de generaciones
     # Menos generaciones: prioriza la eficiencia (encontrar un buen fitness rápido)
