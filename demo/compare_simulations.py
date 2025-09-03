@@ -144,7 +144,6 @@ def optimize_parameters(config_path):
             "all_results": all_results,
             "strategies_analysis": strategies_analysis,
             "pop_size_analysis": pop_size_analysis,
-            "gens_analysis": gens_analysis
         }, filehandler, default_flow_style=False)
     
     print(f"\nResultados completos guardados en {results_file}")
