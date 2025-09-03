@@ -405,7 +405,7 @@ class EGA:
                 async_fitness_solution = self.pool.map_async(_evaluator_wrapper, tasks_for_evaluator)
                 fitness_solution_results = async_fitness_solution.get(timeout=self.timeout)
                 # Es un cuello de botella:
-                # es donde el programa pasa la mayor parte del tiempo. 
+                # es donde el programa pasa la mayor parte del tiempo.
                 # Cualquier optimización en evaluator_toy.py tiene un impacto directo y masivo 
                 # en el tiempo total de ejecución.
                 # Normalizar/validar los resultados
@@ -583,7 +583,7 @@ class EGA:
     # --------------------------
     # Bucle principal del algoritmo
     # --------------------------
-    def run(self, snapshot_dir="snapshots", verbose=True):
+    def run(self, snapshot_dir="snapshots", verbose=True, compare=False):
         """Ejecuta el bucle principal del algoritmo genético.
 
         Itera a través de las generaciones, aplicando elitismo, selección, cruzamiento
@@ -610,6 +610,8 @@ class EGA:
             avg_fitness = np.mean([individual.fitness for individual in self.population])
             print(f"[Gen {gen}] min={min_fitness:.6g}; avg={avg_fitness:.6g}")
         
+        pop_results = []
+
         for gen in range(1, self.generations + 1):
             # Comienza el tiempo de la simulación
             start = time.time()
@@ -658,6 +660,40 @@ class EGA:
                 avg_fitness = snapshot['avg']
                 gen_time = self.history['gen_time'][-1]
                 print(f"[Gen {gen}] min={min_fitness:.6g}; avg={avg_fitness:.6g}; time={gen_time:.2f}s")
+
+                if compare:
+                    self.population.sort(key=lambda x: x.fitness)
+                    trajectory = self.population[0].trajectory.tolist()
+                    final_y_values = [traj[-1] for traj in trajectory] if trajectory else None
+                    # Calcular distancia a los valores objetivo
+                    target_distance = np.linalg.norm(np.array(final_y_values) - np.array(self.evaluator.target))
+                    # Pesos adaptativos basados en el número de generaciones
+                    # Menos generaciones: prioriza la eficiencia (encontrar un buen fitness rápido)
+                    # Más generaciones: prioriza la precisión (acercarse al objetivo)
+                    efficiency_weight = 1.0 / gen
+                    precision_weight = gen / len(self.generations)  # Normalizado por el máx. de generaciones
+                    # Puntuación combinada (menor es mejor)
+                    # Es una función de costo que queremos minimizar.
+                    score = (min_fitness * efficiency_weight) + \
+                            (avg_fitness * efficiency_weight * 0.5) + \
+                            (target_distance * precision_weight)
+                    evaluation = {
+                        "best_fitness": min_fitness,
+                        "last_avg_fitness": avg_fitness,
+                        "target_distance": target_distance,
+                        "final_y_values": final_y_values,
+                        "score": score
+                    }
+                    gen_results = {
+                        "strategy": self.strategy,
+                        "populationSize": self.pop_size,
+                        "generations": gen,
+                        "evaluation": evaluation
+                    }
+                    pop_results.append(gen_results)
+
+        if compare:
+            return pop_results
 
         total_time = time.time() - t0
 

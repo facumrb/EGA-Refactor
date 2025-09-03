@@ -8,7 +8,7 @@ import time
 
 # Añadir la ruta del proyecto al path para poder importar run_demo
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from demo.run_demo import main as run_demo_main
+from demo.run_demo import run_simulation_with_config as run
 
 def load_config(path):
     """Carga un archivo de configuración en formato YAML."""
@@ -21,48 +21,6 @@ def save_config(path, config):
     with open(path, "w") as filehandler:
         yaml.dump(config, filehandler, default_flow_style=False)
 
-def calculate_target_distance(y_values, target_values):
-    """Calcula la distancia promedio entre los valores finales y los valores objetivo."""
-    if y_values is None or len(y_values) != len(target_values):
-        return float('inf')  # Retorna infinito si hay un problema con los datos
-    
-    distances = [abs(y - target) for y, target in zip(y_values, target_values)]
-    return sum(distances) / len(distances)
-
-def evaluate_simulation(results, target_values, generations, max_generations):
-    """Evalúa los resultados de una simulación según criterios biológicos."""
-    # Extraer métricas relevantes
-    best_fitness = results["best"]["fitness"]
-    last_avg_fitness = results["history"]["avg"][-1] if results["history"]["avg"] else float('inf')
-    
-    # Extraer los valores finales de y (concentraciones de proteínas)
-    best_trajectory = results["best"]["y"]
-    final_y_values = [traj[-1] for traj in best_trajectory] if best_trajectory else None
-    
-    # Calcular distancia a los valores objetivo
-    target_distance = np.linalg.norm(np.array(final_y_values) - np.array(target_values))
-    # target_distance = calculate_target_distance(final_y_values, target_values)
-    
-    # Pesos adaptativos basados en el número de generaciones
-    # Menos generaciones: prioriza la eficiencia (encontrar un buen fitness rápido)
-    # Más generaciones: prioriza la precisión (acercarse al objetivo)
-    efficiency_weight = 1.0 / generations
-    precision_weight = generations / max_generations  # Normalizado por el máx. de generaciones
-    
-    # Puntuación combinada (menor es mejor)
-    # Es una función de costo que queremos minimizar.
-    score = (best_fitness * efficiency_weight) + \
-            (last_avg_fitness * efficiency_weight * 0.5) + \
-            (target_distance * precision_weight)
-    
-    return {
-        "best_fitness": best_fitness,
-        "last_avg_fitness": last_avg_fitness,
-        "target_distance": target_distance,
-        "final_y_values": final_y_values,
-        "score": score
-    }
-
 def optimize_parameters(config_path):
     """Busca la mejor combinación de parámetros para la simulación."""
     original_config = load_config(config_path)
@@ -71,9 +29,8 @@ def optimize_parameters(config_path):
     # Definir los valores a explorar para cada parámetro
     strategies = ["uniform", "center"]
     population_sizes = list(range(10, 101))  # Valores en el rango 10-100
-    generations_values = list(range(10, 201))  # Valores en el rango 10-200
     
-    print(f"Iniciando optimización de parámetros con {len(strategies)*len(population_sizes)*len(generations_values)} combinaciones")
+    print(f"Iniciando optimización de parámetros con {len(strategies)*len(population_sizes)} combinaciones")
     print(f"Valores objetivo: {target_values}")
     
     best_params = None
@@ -84,23 +41,15 @@ def optimize_parameters(config_path):
     all_results = []
     
     # Contador para seguimiento del progreso
-    total_combinations = len(strategies) * len(population_sizes) * len(generations_values)
+    total_combinations = len(strategies) * len(population_sizes)
     current_combination = 0
     
-    start_time = time.time()
-    
     # Explorar todas las combinaciones de parámetros
-    for strategy, pop_size, gens in product(strategies, population_sizes, generations_values):
+    for strategy, pop_size in product(strategies, population_sizes):
         current_combination += 1
         
-        # Mostrar progreso
-        elapsed_time = time.time() - start_time
-        avg_time_per_combination = elapsed_time / current_combination
-        estimated_remaining = avg_time_per_combination * (total_combinations - current_combination)
-        
-        print(f"\nCombinación {current_combination}/{total_combinations} - "
-              f"Tiempo estimado restante: {estimated_remaining/60:.1f} minutos")
-        print(f"Parámetros: strategy={strategy}, populationSize={pop_size}, generations={gens}")
+        print(f"\nCombinación {current_combination}/{total_combinations}")
+        print(f"Parámetros: strategy={strategy}, populationSize={pop_size}")
         
         # Crear una copia de la configuración original
         config = copy.deepcopy(original_config)
@@ -108,36 +57,26 @@ def optimize_parameters(config_path):
         # Modificar los parámetros
         config["ega_params"]["strategy"] = strategy
         config["ega_params"]["populationSize"] = pop_size
-        config["ega_params"]["generations"] = gens
         
         # Guardar la configuración modificada
         save_config(config_path, config)
         
         # Ejecutar la simulación
         try:
-            simulation_results = run_demo_main()
-            
-            # Evaluar los resultados
-            evaluation = evaluate_simulation(simulation_results, target_values, gens, len(generations_values))
-            
             # Guardar los resultados con sus parámetros
-            result_entry = {
-                "strategy": strategy,
-                "populationSize": pop_size,
-                "generations": gens,
-                "evaluation": evaluation
-            }
-            all_results.append(result_entry)
+            pop_results_entry = run(config_path, compare=True)
             
-            # Actualizar el mejor resultado si es necesario
-            if evaluation["score"] < best_score:
-                best_score = evaluation["score"]
-                best_evaluation = evaluation
-                best_params = {
-                    "strategy": strategy,
-                    "populationSize": pop_size,
-                    "generations": gens
-                }
+            for gen_results in pop_results_entry:
+                all_results.append(gen_results)
+                # Actualizar el mejor resultado si es necesario
+                if gen_results["evaluation"]["score"] < best_score:
+                    best_score = gen_results["evaluation"]["score"]
+                    best_evaluation = gen_results["evaluation"]
+                    best_params = {
+                        "strategy": strategy,
+                        "populationSize": pop_size,
+                        "generations": gen_results["generations"]
+                    }
             
         except Exception as error:
             print(f"Error en la simulación: {error}")
@@ -195,17 +134,6 @@ def optimize_parameters(config_path):
     print("\nRendimiento promedio por tamaño de población:")
     for pop_size, avg_score in sorted(pop_size_analysis.items()):
         print(f"Tamaño de población {pop_size}: {avg_score:.4f}")
-    
-    # Análisis por generations
-    gens_analysis = {}
-    for gens in generations_values:
-        gens_results = [result for result in all_results if result["generations"] == gens]
-        avg_score = sum(result["evaluation"]["score"] for result in gens_results) / len(gens_results)
-        gens_analysis[gens] = avg_score
-    
-    print("\nRendimiento promedio por número de generaciones:")
-    for gens, avg_score in sorted(gens_analysis.items()):
-        print(f"Generaciones {gens}: {avg_score:.4f}")
     
     # Guardar los resultados completos para análisis posterior
     results_file = os.path.join(os.path.dirname(config_path), "optimization_results.yaml")

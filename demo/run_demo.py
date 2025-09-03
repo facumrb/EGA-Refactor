@@ -104,14 +104,10 @@ def merge_configs(default, user):
             merged[key] = value
     return merged
 
-def main():
-    """Función principal que ejecuta la demostración."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="config.yaml", help="Ruta al archivo de configuración YAML.")
-    args = parser.parse_args()
-    
+def run_simulation_with_config(config_path, compare=False):
+    """Ejecuta la simulación con la configuración proporcionada."""
     # Cargar configuración desde el archivo y fusionarla con la configuración por defecto
-    user_config = load_config(args.config)
+    user_config = load_config(config_path)
     default_config = get_default_config()
 
     # Advertir sobre claves desconocidas en el archivo de configuración del usuario
@@ -141,7 +137,7 @@ def main():
     
     # Crear y ejecutar el algoritmo genético
     ega = EGA(config["ega_params"], config["spaghetti_plot"], evaluator=evaluator)
-    results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
+    results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True, compare=False)
     
     
     # Imprimir resultados
@@ -153,6 +149,14 @@ def main():
     # pprint.pprint(results["total_time_s"])
 
     return results
+
+def main():
+    """Función principal que ejecuta la demostración."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="config.yaml", help="Ruta al archivo de configuración YAML.")
+    args = parser.parse_args()
+
+    return run_simulation_with_config(args.config)
     
 if __name__ == "__main__":
     try:
