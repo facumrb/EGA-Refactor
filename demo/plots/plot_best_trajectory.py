@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 # Paso 1. Cargar datos de la solución
 # -----------------------------
 # Se asume que el archivo final_result.json se encuentra en la carpeta snapshots.
-snapshot_dir = "snapshots"
+snapshot_dir = "..\snapshots"
 final_result_path = os.path.join(snapshot_dir, "final_result.json")
 
 with open(final_result_path, "r") as f:

@@ -7,7 +7,7 @@ import seaborn as sns
 import plotly.express as px
 
 # Directorio donde se guardan los snapshots (asegúrate que coincide con la configuración de run_demo.py)
-snapshot_dir = "snapshots"
+snapshot_dir = "..\snapshots"
 
 # Buscar archivos snapshot que sigan el patrón: snapshot_gen_*.json
 snapshot_files = sorted(glob.glob(os.path.join(snapshot_dir, "snapshot_gen_*.json")))
