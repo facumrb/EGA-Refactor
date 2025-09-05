@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 
 # --- Carga y validación de datos ---
 # Ruta al archivo final_result.json dentro de la carpeta snapshots
-snapshot_path = os.path.join("snapshots", "final_result.json")
+snapshot_path = os.path.join("..\snapshots", "final_result.json")
 if not os.path.exists(snapshot_path):
     raise FileNotFoundError(f"No se encontró el archivo de resultados en: {snapshot_path}")
     sys.exit(1)
@@ -123,4 +123,4 @@ finally:
     sys.stderr = original_stderr
 
 # Exportar el gráfico interactivo a un archivo HTML
-fig.write_html("./visuals/spaghetti.html", auto_open=True)
+fig.write_html("./visuals/spaghetti.html", auto_open=False)

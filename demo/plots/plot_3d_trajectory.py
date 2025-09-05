@@ -2,7 +2,7 @@ import json
 import plotly.graph_objects as go
 import numpy as np
 
-def plot_3d_trajectory(file_path="./snapshots/final_result.json"):
+def plot_3d_trajectory(file_path="../snapshots/final_result.json"):
     with open(file_path, 'r') as f:
         data = json.load(f)
 

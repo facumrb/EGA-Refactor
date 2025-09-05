@@ -65,7 +65,7 @@ def optimize_parameters(config_path):
         try:
             # Guardar los resultados con sus parámetros
             pop_results_entry = run(config_path, compare=True)
-            
+
             for gen_results in pop_results_entry:
                 all_results.append(gen_results)
                 # Actualizar el mejor resultado si es necesario

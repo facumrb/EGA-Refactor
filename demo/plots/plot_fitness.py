@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 
 # Ruta al archivo final_result.json generado en el directorio de snapshots
-snapshot_dir = os.path.join("snapshots")
+snapshot_dir = os.path.join("..\snapshots")
 final_result_path = os.path.join(snapshot_dir, "final_result.json")
 
 # Cargar los datos del resultado final

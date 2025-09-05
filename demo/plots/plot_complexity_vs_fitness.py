@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Ruta al snapshot final (se espera que incluya la población final)
-snapshot_dir = "snapshots"
+snapshot_dir = "..\snapshots"
 final_result_path = os.path.join(snapshot_dir, "final_result.json")
 
 # Cargar los datos del snapshot final
