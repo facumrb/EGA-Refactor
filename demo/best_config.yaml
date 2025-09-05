@@ -1,0 +1,75 @@
+common_bounds: &id001
+- - 0.1
+  - 3.0
+- - 0.01
+  - 1.0
+- - -3.0
+  - 3.0
+- - 0.1
+  - 3.0
+- - 0.01
+  - 1.0
+- - -3.0
+  - 3.0
+- - 0.1
+  - 3.0
+- - 0.01
+  - 1.0
+- - -3.0
+  - 3.0
+common_seed: 42
+ega_params:
+  alpha_blx: 0.15
+  base_timeout: 25.0
+  bounds: *id001
+  crossover_rate: 0.8
+  elite_size: 3
+  failure_rate_threshold_decrease: 0.05
+  failure_rate_threshold_increase: 0.3
+  generations: 15
+  max_timeout: 60000.0
+  mutation_rate: 0.15
+  mutation_scale:
+  - 0.05
+  - 0.05
+  - 0.2
+  - 0.05
+  - 0.05
+  - 0.2
+  - 0.05
+  - 0.05
+  - 0.2
+  populationSize: 11
+  processes: 7
+  seed: 42
+  strategy: center
+  timeout: 25.0
+  timeout_decrease_factor: 0.9
+  timeout_increase_factor: 2.0
+  tournament_k: 3
+evaluator_params:
+  bounds: *id001
+  dt: 0.5
+  fitness_penalty_factor: 0.001
+  high_fitness_penalty: 1e6
+  initial_conditions:
+  - 0.1
+  - 0.1
+  - 0.1
+  min_degradation_rate: 1e-3
+  min_production_rate: 1e-6
+  noise_std: 0.05
+  reached_reward_value: -0.01
+  seed: 42
+  t_span:
+  - 0
+  - 40
+  target:
+  - 1.0
+  - 0.8
+  - 0.6
+snapshot_dir: snapshots
+spaghetti_plot:
+  enabled: true
+  noise_std_factor: 0.5
+  num_simulations: 100

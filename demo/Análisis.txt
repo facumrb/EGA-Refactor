@@ -45,179 +45,124 @@ Esta separación permite, por ejemplo, cambiar el modelo biológico por uno comp
 - Costo Computacional : El cuello de botella de todo el pipeline es casi siempre la función evaluate en el evaluador. Resolver sistemas de EDOs es costoso, y el EGA necesita hacerlo miles de veces. Por eso, la implementación usa pebble para paralelizar este paso.
 - Parámetros Críticos : Los parámetros en config.yaml no son triviales. Definen tanto el comportamiento del algoritmo de búsqueda (ej. populationSize , mutation_rate ) como la propia definición del problema biológico (ej. target , t_span ). Un mal ajuste aquí puede llevar a que el algoritmo nunca encuentre una buena solución o tarde demasiado.
 
-Leer todo a continuación antes de empezar:
-Tarea: recolectar los estudios que sustentan al proyecto.
-        Para completar esta tarea se recomienda:
-        1. Leer el código recorriendo las funciones que el sistema recorre al ser ejecutado.
-                Nota: Luego del quinto punto (5.) se muestra cómo debe ser recorrido el sistema.
-        2. Leer los comentarios de cada función para comprender el funcionamiento de cada parte.
-        3. Por cada parte, identificar la teoría que sustenta a la función y los valores del sistema (constante, variables, etc).
-                Nota: Los comentarios dan una introducción guía que no es suficiente. Por lo tanto se debe investigar el significado biológico de los valores de atributos, variables, funciones, etc. que se definen en el código para llegar a la exactitud biológica:
-                ¿Por qué se tienen ciertos valores? ¿Cómo se relacionan? ¿En qué contexto biológico se determinan? Se recomienda buscar estudios con relación directa a la aplicación de nuestro proyecto.
-                En `demo\Estudios` dejo el avance que logré con respecto a la investigación, se puede tomar como base. Se recomienda leer los abstract y conclusion de cada estudio para minimizar el tiempo de análisis.
-        4. En base a la información invetigada, seleccionar los estudios que mayor relevancia tienen e identificar sus partes para articularlas y así estructurar la teoría.
-                Nota: Los estudios seleccionados sí tienen que ser analizados más allá del abstract y conclusion para verificar que responder correctamente a nuestro proyecto.
-        5. Por último, la teoría es una recopilación de estudios que sustenta paso a paso el por qué de nuestro proyecto.
 
-        Atención.. se debe hacer investigación en cómo se define cada constante del código.
-        Cómo recorrer el sistema:
-        run_demo.py
-                + def main(): - Comienzo del sistema.
-                        recorrer hasta ...
-                + user_config = load_config(args.config)
-                + def load_config(path):
-                        recorrer hasta ...
-                + return config
-                + default_config = get_default_config()
-                + def get_default_config():
-                        recorrer hasta ...
-                + "snapshot_dir": "snapshots"
-                + validate_config(user_config, default_config)
-                + def validate_config(user_config, default_config):
-                        recorrer hasta ...
-                + warnings.warn(f"Claves desconocidas en config.yaml: {unknown_keys}. Serán ignoradas.") 
-                + config = {**default_config, **user_config}
-        config.yaml
-                recorrer completo para tener una visión general.
-                por el momento es necesario conocer los valores y qué son
-                pero al momento de ser usados debe investigarse la teoría
-        run_demo.py
-                + # Parámetros del evaluador
-                        recorrer hasta ...
-                + evaluator = ToyODEEvaluator(evaluator_config)
-        evaluator_toy.py
-                + class ToyODEEvaluator:
-                        recorrer hasta ...
-                + self.bounds = np.array(bounds, dtype=float) if bounds is not None else DEFAULT_BOUNDS
-                        (prestar atención a los valores de las constantes y el uso en config.yaml para investigar)
-        run_demo.py
-                + # Configuración del EGA
-                        recorrer hasta ...
-                + ega = EGA(ega_config, evaluator)
-        ega_core.py
-                + class EGA:
-                        recorre hasta ...
-                + self.population = [Individual(self.bounds, self.strategy) for _ in range(self.pop_size)]
-                + class Individual:
-                        recorrer hasta ...
-                + self.fitness = None
-                + self.history = {"min": [], "avg": [], "gen_time": []}
-        run_demo.py
-                + results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True)
-        ega_core.py
-                + run(self, snapshot_dir="snapshots", verbose=True)
-                        recorrer hasta
-                + self._evaluate_population(self.population)
-                + def _evaluate_population(self, population_to_eval=None):
-                        recorrer hasta
-                + key_for_Dictionary = safe_round_tuple(individual.decode())
-                + def decode(self):
-                        recorrer hasta
-                + return np.clip(self.params, self.bounds[:,0], self.bounds[:,1])
-                + key_for_Dictionary = safe_round_tuple(individual.decode())
-                + def safe_round_tuple(individual_arr, digits=6):
-                        recorrer hasta
-                + return tuple([round(float(gen), digits) for gen in individual_arr])
-                + if key_for_Dictionary in self.cache:
-                        recorrer hasta ...
-                + with pebble.ProcessPool(max_workers=self.processes, initializer=init_worker, initargs=(self.seed,)) as pool:
-                + def init_worker(seed_base: int):
-                        recorrer hasta ...
-                + _np.random.seed(s)
-                + with pebble.ProcessPool(max_workers=self.processes, initializer=init_worker, initargs=(self.seed,)) as pool:
-                        recorrer hasta ...
-                + future = pool.map(_evaluator_wrapper, tasks_for_evaluator, timeout=self.timeout)
-                + def _evaluator_wrapper(evaluator_and_individual):
-                        recorrer hasta ...
-                + return evaluator.evaluate(individual)
-        evaluator_toy.py
-                + def evaluate(self, individual):
-                        recorrer hasta ...
-                + y_final, solution = self.simulate(individual)
-                + def simulate(self, individual):
-                        recorrer hasta ...
-                + solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0, t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6)
-                + def _ode_system(self, t, y, individual_params):
-                        recorrer hasta ...
-                + return dydt
-                + # 3. Extraer el estado final del sistema.
-                        recorrer hasta ...
-                + raise ValueError(f"Simulación fallida para individuo: {error}")
-                + if y_final is None:
-                        recorrer hasta ...
-                + L2_distance = self._calculate_L2_distance(y_final)
-                + def _calculate_L2_distance(self, y_final):
-                        recorrer hasta
-                + return np.linalg.norm(y_final - self.target) # Siempre es positivo
-                + complexity_penalty = self._calculate_complexity_penalty(individual)
-                + def _calculate_complexity_penalty(self, individual):
-                        recorrer hasta ...
-                + return self.fitness_penalty_factor * np.sum(np.abs(individual))
-                + reached_reward = self._calculate_reached_reward(solution)
-                + def _calculate_reached_reward(self, solution):
-                        recorrer hasta ...
-                + if self._calculate_L2_distance(y) < self._calculate_reward_tolerance():
-                + def _calculate_reward_tolerance(self):
-                        recorrer hasta
-                + return base_tolerance * scale_factor * noise_factor
-                + if self._calculate_L2_distance(y) < self._calculate_reward_tolerance():
-                        recorrer hasta
-                + return 0.0
-                + # El fitness total es la suma de sus componentes
-                        recorrer hasta
-                + return float('inf') # Penalización para fallos en simulación
-        ega_core.py
-                + iterator = future.result()
-                        recorrer hasta ...
-                + self.cache[key_for_Dictionary] = individual.fitness
-                + self._evaluate_population(self.population)
-                        recorrer hasta ...
-                + self._record_stats() # Primer registro de estadísticas
-                + def _record_stats(self):
-                        recorrer hasta ...
-                + self.history["avg"].append(float(np.mean(fitness)))
-                + gen = 0
-                        recorrer hasta ...
-                + parents = self._select_parents(self.tournament_k)
-                + def _select_parents(self, tournament_k):
-                        recorrer hasta ...
-                + return self.tournament_selection(tournament_k, num_select=self.pop_size - self.elite_size)
-                + def tournament_selection(self, tournament_k=3, num_select=None):
-                        recorrer hasta ...
-                + return selected
-                + return self.tournament_selection(tournament_k, num_select=self.pop_size - self.elite_size)
-                + # 3. Creación de descendencia (cruzamiento)
-                + offspring = self._create_offspring(parents)
-                + def _create_offspring(self, parents):
-                        recorrer hasta ...
-                + child_params = blx_alpha_crossover(parent1.params, parent2.params, self.alpha_blx)
-                + def blx_alpha_crossover(parent1: np.ndarray, parent2: np.ndarray, blx_alpha=0.3, bounds=None):
-                        recorrer hasta ...
-                + return child
-                + child_params = blx_alpha_crossover(parent1.params, parent2.params, self.alpha_blx)
-                        recorrer hasta ...
-                + child_params = parent1.params.copy()
-                + def copy(self):
-                        recorrer hasta ...
-                + return individual_copy
-                + child = Individual(self.bounds)
-                        recorrer hasta ...
-                + return offspring
-                + self._apply_mutation(offspring)
-                + def _apply_mutation(self, offspring):
-                        recorrer hasta ...
-                + child.params = gaussian_mutation(child.params, self.mutation_rate, self.mutation_scale, self.bounds)
-                + def gaussian_mutation(params: np.ndarray, mutation_rate: float, mutation_scale: np.ndarray, bounds=None):
-                        recorrer hasta ...
-                + return individual_params
-                + child.params = gaussian_mutation(child.params, self.mutation_rate, self.mutation_scale, self.bounds)
-                + self._evaluate_population(offspring) # Evalúa solo a los nuevos
-                        (ya se explicó "_evaluate_population") recorrer hasta ...
-                        (ya se explicó "_record_stats()") recorrer hasta ...
-                + return final
-        run_demo.py
-                + # Imprimir resultados
-                        recorrer hasta ...
-                + print("Tiempo total (s):", results["total_time_s"])
+==================================================
+MEJORES PARÁMETROS ENCONTRADOS:
+Estrategia: center
+Tamaño de la población: 11
+Generaciones: 15
 
-        FIN.
+RESULTADOS:
+Fitness: 0.01873178506452589
+Último fitness promedio: 0.054604619605907144
+Distancia a valores objetivo: 0.040813567627245355
+Valores finales: [0.9662675011554206, 0.808966498341226, 0.5788465669060322]
+Valores objetivo: [1.0, 0.8, 0.6]
+Puntuación final: 0.009190974801918767
+
+==================================================
+ANÁLISIS DE TENDENCIAS:
+
+Top 5 mejores combinaciones:
+1. Estrategia: center, Tamaño de población: 11, Generaciones: 15, Score: 0.0092
+2. Estrategia: uniform, Tamaño de población: 22, Generaciones: 22, Score: 0.0104
+3. Estrategia: uniform, Tamaño de población: 33, Generaciones: 19, Score: 0.0105
+4. Estrategia: uniform, Tamaño de población: 16, Generaciones: 25, Score: 0.0109
+5. Estrategia: center, Tamaño de población: 11, Generaciones: 19, Score: 0.0112
+
+Rendimiento promedio por estrategia:
+Estrategia 'uniform': 0.0588
+Estrategia 'center': 0.0396
+
+Rendimiento promedio por tamaño de población:
+Tamaño de población 10: 0.0567
+Tamaño de población 11: 0.0470
+Tamaño de población 12: 0.0489
+Tamaño de población 13: 0.0508
+Tamaño de población 14: 0.0434
+Tamaño de población 15: 0.0474
+Tamaño de población 16: 0.0465
+Tamaño de población 17: 0.0477
+Tamaño de población 18: 0.0498
+Tamaño de población 19: 0.0445
+Tamaño de población 20: 0.0489
+Tamaño de población 21: 0.0454
+Tamaño de población 22: 0.0453
+Tamaño de población 23: 0.0479
+Tamaño de población 24: 0.0478
+Tamaño de población 25: 0.0485
+Tamaño de población 26: 0.0461
+Tamaño de población 27: 0.0520
+Tamaño de población 28: 0.0476
+Tamaño de población 29: 0.0493
+Tamaño de población 30: 0.0483
+Tamaño de población 31: 0.0550
+Tamaño de población 32: 0.0515
+Tamaño de población 33: 0.0437
+Tamaño de población 34: 0.0508
+Tamaño de población 35: 0.0507
+Tamaño de población 36: 0.0483
+Tamaño de población 37: 0.0540
+Tamaño de población 38: 0.0565
+Tamaño de población 39: 0.0468
+Tamaño de población 40: 0.0475
+Tamaño de población 41: 0.0483
+Tamaño de población 42: 0.0514
+Tamaño de población 43: 0.0518
+Tamaño de población 44: 0.0521
+Tamaño de población 45: 0.0506
+Tamaño de población 46: 0.0505
+Tamaño de población 47: 0.0482
+Tamaño de población 48: 0.0447
+Tamaño de población 49: 0.0510
+Tamaño de población 50: 0.0475
+Tamaño de población 51: 0.0465
+Tamaño de población 52: 0.0486
+Tamaño de población 53: 0.0502
+Tamaño de población 54: 0.0493
+Tamaño de población 55: 0.0483
+Tamaño de población 56: 0.0532
+Tamaño de población 57: 0.0498
+Tamaño de población 58: 0.0498
+Tamaño de población 59: 0.0476
+Tamaño de población 60: 0.0495
+Tamaño de población 61: 0.0478
+Tamaño de población 62: 0.0479
+Tamaño de población 63: 0.0479
+Tamaño de población 64: 0.0468
+Tamaño de población 65: 0.0495
+Tamaño de población 66: 0.0517
+Tamaño de población 67: 0.0491
+Tamaño de población 68: 0.0483
+Tamaño de población 69: 0.0501
+Tamaño de población 70: 0.0528
+Tamaño de población 71: 0.0527
+Tamaño de población 72: 0.0508
+Tamaño de población 73: 0.0486
+Tamaño de población 74: 0.0514
+Tamaño de población 75: 0.0514
+Tamaño de población 76: 0.0478
+Tamaño de población 77: 0.0522
+Tamaño de población 78: 0.0511
+Tamaño de población 79: 0.0483
+Tamaño de población 80: 0.0522
+Tamaño de población 81: 0.0482
+Tamaño de población 82: 0.0467
+Tamaño de población 83: 0.0479
+Tamaño de población 84: 0.0478
+Tamaño de población 85: 0.0471
+Tamaño de población 86: 0.0512
+Tamaño de población 87: 0.0498
+Tamaño de población 88: 0.0461
+Tamaño de población 89: 0.0487
+Tamaño de población 90: 0.0474
+Tamaño de población 91: 0.0490
+Tamaño de población 92: 0.0476
+Tamaño de población 93: 0.0507
+Tamaño de población 94: 0.0506
+Tamaño de población 95: 0.0504
+Tamaño de población 96: 0.0503
+Tamaño de población 97: 0.0472
+Tamaño de población 98: 0.0468
+Tamaño de población 99: 0.0494
+Tamaño de población 100: 0.0512
