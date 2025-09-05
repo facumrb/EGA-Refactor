@@ -39,7 +39,7 @@ ega_params:
   - 0.05
   - 0.05
   - 0.2
-  populationSize: 14
+  populationSize: 12
   processes: 7
   seed: 42
   strategy: uniform

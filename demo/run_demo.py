@@ -137,12 +137,12 @@ def run_simulation_with_config(config_path, compare=False):
     
     # Crear y ejecutar el algoritmo genético
     ega = EGA(config["ega_params"], config["spaghetti_plot"], evaluator=evaluator)
-    results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True, compare=False)
+    results = ega.run(snapshot_dir=config["snapshot_dir"], verbose=True, compare=compare)
     
     
     # Imprimir resultados
     print("Mejor fitness encontrada:")
-    pprint.pprint(results["best"]["fitness"])
+    pprint.pprint(results[-1]["evaluation"]["best_fitness"])
     # print("Mejor trayectoria encontrada:")
     # pprint.pprint(results["best"]["trajectory"])
     # print("Tiempo total (s):")

@@ -671,7 +671,7 @@ class EGA:
                     # Menos generaciones: prioriza la eficiencia (encontrar un buen fitness rápido)
                     # Más generaciones: prioriza la precisión (acercarse al objetivo)
                     efficiency_weight = 1.0 / gen
-                    precision_weight = gen / len(self.generations)  # Normalizado por el máx. de generaciones
+                    precision_weight = gen / self.generations  # Normalizado por el máx. de generaciones
                     # Puntuación combinada (menor es mejor)
                     # Es una función de costo que queremos minimizar.
                     score = (min_fitness * efficiency_weight) + \
