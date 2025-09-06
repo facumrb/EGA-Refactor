@@ -142,7 +142,10 @@ def run_simulation_with_config(config_path, compare=False):
     
     # Imprimir resultados
     print("Mejor fitness encontrada:")
-    pprint.pprint(results[-1]["evaluation"]["best_fitness"])
+    if compare:
+        pprint.pprint(results[-1]["evaluation"]["best_fitness"])
+    else:
+        pprint.pprint(results["best"]["fitness"])
     # print("Mejor trayectoria encontrada:")
     # pprint.pprint(results["best"]["trajectory"])
     # print("Tiempo total (s):")

@@ -26,7 +26,7 @@ ega_params:
   elite_size: 3
   failure_rate_threshold_decrease: 0.05
   failure_rate_threshold_increase: 0.3
-  generations: 100
+  generations: 15
   max_timeout: 60000.0
   mutation_rate: 0.15
   mutation_scale:
@@ -39,10 +39,10 @@ ega_params:
   - 0.05
   - 0.05
   - 0.2
-  populationSize: 12
+  populationSize: 11
   processes: 7
   seed: 42
-  strategy: uniform
+  strategy: center
   timeout: 25.0
   timeout_decrease_factor: 0.9
   timeout_increase_factor: 2.0
