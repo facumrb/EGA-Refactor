@@ -134,14 +134,14 @@ class ToyODEEvaluator:
             # El primer argumento (fun=lambda t, y: self._ode_system(t, y, individual)) es la función que define el sistema de EDOs:
             # le dice a solve_ivp cómo cambian las concentraciones de proteínas en cada instante.
             # El argumento fun es el más crítico para solve_ivp. Requiere una función que describa el sistema de Ecuaciones Diferenciales Ordinarias (EDOs). 
-            # Esta función debe aceptar el tiempo t y el estado del sistema y (un array con las concentraciones de las especies) y devolver las derivadas ( dy/dt ), 
-            # es decir, cómo están cambiando las concentraciones en ese preciso instante.
-            # "lambda t, y: ..." : Aquí se usa una función anónima (lambda). Es un truco de programación para crear una función temporal y simple sin tener que definirla 
-            # formalmente en otro lugar con def. solve_ivp necesita una función que solo tome t y y como argumentos principales, pero nuestro modelo (_ode_system) 
-            # también necesita los parámetros del individual.
-            # La función lambda actúa como un adaptador. Cuando solve_ivp la llama internamente con un tiempo t y un estado y, la lambda inmediatamente llama al método 
-            # `_ode_system` (self._ode_system(t, y, individual)), pasándole no solo t y y, sino también el individual actual. El individual contiene el conjunto de parámetros 
-            # (las "reglas" de la red genética) que el algoritmo genético está probando en esa evaluación específica.
+            # Esta función debe aceptar el tiempo t y el estado del sistema y (un array con las concentraciones de las especies) y devolver las derivadas 
+            # ( dy/dt ), es decir, cómo están cambiando las concentraciones en ese preciso instante.
+            # "lambda t, y: ..." : Aquí se usa una función anónima (lambda). Es un truco de programación para crear una función temporal y simple sin tener 
+            # que definirla formalmente en otro lugar con def. solve_ivp necesita una función que solo tome t y y como argumentos principales, pero nuestro 
+            # modelo (_ode_system) también necesita los parámetros del individual.
+            # La función lambda actúa como un adaptador. Cuando solve_ivp la llama internamente con un tiempo t y un estado y, la lambda inmediatamente 
+            # llama al método `_ode_system` (self._ode_system(t, y, individual)), pasándole no solo t y y, sino también el individual actual. El individual 
+            # contiene el conjunto de parámetros (las "reglas" de la red genética) que el algoritmo genético está probando en esa evaluación específica.
             # Al principio t será t_span[0] y y será y0. Luego t será t_span[0] + dt y y será la solución de la EDO en ese t_span[0].
             # _ode_system devuelve la tasa de cambio ( dy/dt ) para cada proteína.
             # t_span es el intervalo de tiempo (t0, tf) en el que se integra.
@@ -150,12 +150,12 @@ class ToyODEEvaluator:
             # vectorized=False indica que la función _ode_system no está vectorizada.
             # rtol es la tolerancia relativa para la integración.
             # atol es la tolerancia absoluta para la integración.
-            # solve_ivp no devuelve un objeto que contiene toda la información sobre la simulación.
+            # solve_ivp devuelve un objeto que contiene toda la información sobre la simulación.
             # Los atributos más importantes de este objeto solution son:
             # solution.t: Un array con los tiempos en los que se evaluó la solución. Coincide con t_eval.
             # solution.y: El resultado principal: es una matriz con las concentraciones de proteínas en cada tiempo.
             # Cada fila de solution.y corresponde a una proteína, y cada columna a un tiempo.
-            # solution.y.shape es (3, 101), donde 3 es el número de proteínas y 101 es el número de tiempos.
+            # solution.y.shape es (p, t), donde p es el número de proteínas y t es el número de tiempos.
             # solve_ivp vuelve a llamar a _ode_system , pero esta vez con los nuevos valores de t y y que acaba de calcular.
             #       _ode_system calcula las nuevas derivadas para este nuevo estado.
             #       solve_ivp toma estas nuevas derivadas y calcula el estado para el siguiente pequeño paso de tiempo.

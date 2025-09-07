@@ -37,7 +37,7 @@ def create_edge_traces(G, pos, interaction_weights):
         if edge_type == 'regulation':
             color = 'green' if weight > 0 else 'red'
             max_abs_weight = max(abs(w) for w in interaction_weights) if len(interaction_weights) > 0 else 1
-            width = 1 + 4 * abs(weight) / max_abs_weight
+            width = 1 + 4 * abs(weight) / max_abs_weight if max_abs_weight > 0 else 1
             hover_text = f'Peso Regulación: {weight:.2f}'
         else: # 'contribution'
             color = 'grey'
