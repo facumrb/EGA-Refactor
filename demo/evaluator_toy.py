@@ -163,7 +163,7 @@ class ToyODEEvaluator:
             #       y en cada paso, llama a _ode_system para preguntarle "¿hacia dónde vamos ahora?".
             # print("Revisado de individuo en simulate:", individual)
             solution = solve_ivp(fun=lambda t, y: self._ode_system(t, y, individual), t_span=(t0, tf), y0=y0,
-                                t_eval=t_eval, vectorized=False, rtol=1e-3, atol=1e-6, method="LSODA",
+                                t_eval=t_eval, vectorized=False, rtol=1e-6, atol=1e-9, method="LSODA",
                                 dense_output=True)
             # Comprobar success (atributo estándar de OdeResult)
             if not getattr(solution, "success", True):
@@ -211,7 +211,7 @@ class ToyODEEvaluator:
         Biológicamente, simula umbrales de activación en redes genéticas, adaptándose a la escala de expresión
         para capturar variabilidad celular real (ej. ruido en transcripción).
         """
-        base_tolerance = 0.1  # Valor base empírico (10% de desviación aceptable)
+        base_tolerance = 0.05  # Valor base empírico (10% de desviación aceptable)
         scale_factor = np.linalg.norm(self.target)  # Escala con magnitud del objetivo
         noise_factor = 1 + self.noise_std  # Ajuste por variabilidad biológica/numérica
         reward_tolerance = base_tolerance * scale_factor * noise_factor

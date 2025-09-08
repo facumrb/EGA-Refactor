@@ -24,15 +24,18 @@ ega_params:
   max_timeout: 60000.0
   mutation_rate: 0.15
   mutation_scale:
-  - 0.05
-  - 0.05
-  - 0.2
-  - 0.05
-  - 0.05
-  - 0.2
-  - 0.05
-  - 0.05
-  - 0.2
+  # SP1
+  - 0.19    # prod_SP1  (≈ 10% del rango 0.10–2.00)
+  - 0.02    # deg_SP1   (≈ 7.5% del rango 0.03–0.30)
+  - 1.20    # inter_SP1 (≈ 20% del rango -3..3)
+  # RUNX2
+  - 0.17    # prod_RUNX2 (≈ 12% del rango 0.05–1.50)
+  - 0.04    # deg_RUNX2  (≈ 7.5% del rango 0.05–0.60)
+  - 1.60    # inter_RUNX2(≈ 20% del rango -4..4)
+  # ETS1
+  - 0.12    # prod_ETS1  (≈ 12% del rango 0.02–1.00)
+  - 0.06    # deg_ETS1   (≈ 8.6% del rango 0.10–0.80)
+  - 1.20    # inter_ETS1 (≈ 20% del rango -3..3)  - 0.05
   populationSize: 25
   processes: 7
   seed: 42
@@ -43,7 +46,7 @@ ega_params:
   tournament_k: 3
 evaluator_params:
   bounds: *id001
-  dt: 0.5
+  dt: 0.1
   fitness_penalty_factor: 0.001
   high_fitness_penalty: 1e6
   initial_conditions:
@@ -57,7 +60,7 @@ evaluator_params:
   seed: 42
   t_span:
   - 0
-  - 40
+  - 168
   target:
   - 0.9 # SP1
   - 1.0 # RUNX2
