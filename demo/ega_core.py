@@ -642,30 +642,12 @@ class EGA:
             end = time.time()
             self.history["gen_time"].append(end - start)
 
-            # Decodificar parámetros a vectores
-            best_vec = self.population[0].params.tolist()
-
-            # Intentar obtener los nombres
-            names = getattr(self.evaluator, "tf_names", None)
-            if names and len(names) == len(best_vec)//3:
-                # si el individuo es [prod,deg,inter, prod,deg,inter, ...] por cada TF:
-                best_params_named = {}
-                for i, name in enumerate(names):
-                    idx = 3*i
-                    best_params_named[name] = {
-                        "prod": best_vec[idx],
-                        "deg":  best_vec[idx+1],
-                        "inter":best_vec[idx+2]
-                    }
-            else:
-                best_params_named = best_vec  # fallback
-
             # snapshot
             snapshot = {
                 "gen": gen,
                 "min": float(min([individual.fitness for individual in self.population])),
                 "avg": float(np.mean([individual.fitness for individual in self.population])),
-                "best_params": best_params_named,
+                "best_params": self.population[0].params.tolist(),
                 "pop_params": [individual.params.tolist() for individual in self.population],
                 "seed": self.seed,
                 "config": self.configEGA
