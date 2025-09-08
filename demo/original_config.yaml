@@ -71,7 +71,7 @@ evaluator_params:
 
   bounds: *bounds
 
-  initial_conditions: [0.1, 0.1, 0.1]
+  initial_conditions: [0.1, 0.1, 0.1] # SP1, RUNX2 y ETS1
   # Estado Basal de Expresión : El valor 0.1 para cada uno de los tres componentes 
   # del vector representa una concentración inicial, baja pero no nula, de los tres 
   # factores de transcripción (o proteínas) en el modelo. Biológicamente, es muy 
