@@ -50,6 +50,12 @@ class ToyODEEvaluator:
         self.min_production_rate = config["min_production_rate"]
         self.min_degradation_rate = config["min_degradation_rate"]
         self.seed = config["seed"]
+        # Lista de nombres para las variables y mapa humano
+        self.tf_names = list(self.config.get("tf_names", [f"TF{i+1}" for i in range(len(self.initial_conditions))]))
+        # interpretación del target (mRNA/protein/activity)
+        self.target_type = self.config.get("target_type", "Actividad de proteína")
+        # entity_mapping opcional (texto explicativo)
+        self.entity_mapping = self.config.get("entity_mapping", {name: "" for name in self.tf_names})
 
     def _ode_system(self, t, y, individual):
         """Define el sistema de Ecuaciones Diferenciales Ordinarias (EDOs) que modela la red genética.
