@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Condrogénesis</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+        .slide {
+            width: 100vw;              /* 100% del ancho visible */
+            height: 100vh;             /* 100% del alto visible */
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(0, 59, 92, 0.9), rgba(0, 128, 128, 0.8));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            }
+        .header {
+            padding: 2rem 4rem 1rem;
+        }
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ffffff, #8cffdb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .content {
+            display: flex;
+            flex: 1;
+            padding: 0 4rem 2.5rem;
+        }
+        .left-content {
+            flex: 1;
+            padding-right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .intro {
+            font-size: 1.25rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1rem;
+            border-left: 4px solid #4caf50;
+        }
+        .stages-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: 0.75rem;
+        }
+        .stage {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        .stage:hover {
+            transform: translateX(5px);
+        }
+        .stage-number {
+            background: #4caf50;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .stage-content {
+            flex: 1;
+        }
+        .stage-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #8cffdb;
+        }
+        .stage-desc {
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+        .image-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .image-container img {
+            max-width: 90%;
+            max-height: 340px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .key-changes {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+        }
+        .key-changes-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8cffdb;
+            display: flex;
+            align-items: center;
+        }
+        .key-changes-title i {
+            margin-right: 0.75rem;
+        }
+        .changes-list {
+            display: flex;
+            justify-content: space-between;
+        }
+        .change-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 0.5rem;
+        }
+        .change-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .change-icon i {
+            font-size: 1.5rem;
+            color: #8cffdb;
+        }
+        .change-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .key-point {
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.3), rgba(140, 255, 219, 0.2));
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            border-left: 4px solid #4caf50;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .key-point-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .highlight {
+            color: #8cffdb;
+            font-weight: 700;
+        }
+    </style>
+    <script src="changeSlide.js"></script>
+    <link rel="stylesheet" href="windowFix.css">
+</head>
+<body>
+    <div class="slide">
+        <div class="header">
+            <h1 class="title">Condrogénesis</h1>
+        </div>
+        <div class="content">
+            <div class="left-content">
+                <div class="intro">
+                    Secuencia ordenada de estados celulares desde progenitores multipotentes hasta condrocitos maduros
+                </div>
+                
+                <div class="stages-container">
+                    <div class="stage">
+                        <div class="stage-number">1</div>
+                        <div class="stage-content">
+                            <div class="stage-title">Neuroectodérmico</div>
+                            <div class="stage-desc">Plasticidad celular y actividad basal de factores generales</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stage">
+                        <div class="stage-number">2</div>
+                        <div class="stage-content">
+                            <div class="stage-title">Condensación Mesenquimal</div>
+                            <div class="stage-desc">Migración y agregación en nódulos precondrogénicos</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stage">
+                        <div class="stage-number">3</div>
+                        <div class="stage-content">
+                            <div class="stage-title">Diferenciación a Condroblastos</div>
+                            <div class="stage-desc">Redondeo celular e inicio de síntesis masiva de matriz</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stage">
+                        <div class="stage-number">4</div>
+                        <div class="stage-content">
+                            <div class="stage-title">Proliferación Condrocítica</div>
+                            <div class="stage-desc">Actividad biosintética máxima y producción de matriz</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stage">
+                        <div class="stage-number">5</div>
+                        <div class="stage-content">
+                            <div class="stage-title">Maduración / Hipertrofia</div>
+                            <div class="stage-desc">Detención del ciclo celular y aumento de volumen</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-content">
+                <div class="image-container">
+                    <img src="Condrogenesis.png" alt="Proceso de condrogénesis">
+                </div>
+                
+                <div class="key-changes">
+                    <div class="key-changes-title">
+                        <i class="fas fa-microscope"></i>
+                        Cambios Clave
+                    </div>
+                    <div class="changes-list">
+                        <div class="change-item">
+                            <div class="change-icon">
+                                <i class="fas fa-microscope"></i>
+                            </div>
+                            <div class="change-text">Morfología celular</div>
+                        </div>
+                        <div class="change-item">
+                            <div class="change-icon">
+                                <i class="fas fa-border-all"></i>
+                            </div>
+                            <div class="change-text">Reorganización de matriz extracelular</div>
+                        </div>
+                        <div class="change-item">
+                            <div class="change-icon">
+                                <i class="fas fa-dna"></i>
+                            </div>
+                            <div class="change-text">Reprogramación transcripcional</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="key-point">
+                    <p class="key-point-text">
+                        <span class="highlight">Dinámica temporal</span> y <span class="highlight">cooperación</span> entre factores transcripcionales determinan el progreso y estabilidad del destino condrogénico
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

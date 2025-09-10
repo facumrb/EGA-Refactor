@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factores de Transcripción en la Condrogénesis</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+        .slide {
+            width: 100vw;              /* 100% del ancho visible */
+            height: 100vh;             /* 100% del alto visible */
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(0, 59, 92, 0.9), rgba(0, 128, 128, 0.7)), 
+                        url('https://sfile.chatglm.cn/images-ppt/8065b8f93714.png');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            }
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+        }
+        .left-content {
+            flex: 7;
+            padding: 70px 20px 70px 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .right-content {
+            flex: 5;
+            padding: 70px 70px 70px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .title {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(90deg, #ffffff, #8cffdb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 2px 10px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .decoration {
+            width: 120px;
+            height: 6px;
+            background: linear-gradient(90deg, #4caf50, #8cffdb);
+            margin-bottom: 40px;
+            border-radius: 3px;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 20px;
+        }
+        .icon-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .icon-item:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: #4caf50;
+        }
+        .icon-text {
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .molecule {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .molecule-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(76, 175, 80, 0.8), rgba(0, 128, 128, 0.6));
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+            animation: pulse 3s infinite alternate;
+        }
+        .molecule-circle:nth-child(1) {
+            width: 120px;
+            height: 120px;
+            top: 20%;
+            left: 30%;
+        }
+        .molecule-circle:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            top: 50%;
+            left: 60%;
+            animation-delay: 0.5s;
+        }
+        .molecule-circle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            top: 70%;
+            left: 25%;
+            animation-delay: 1s;
+        }
+        .molecule-line {
+            position: absolute;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.7), rgba(140, 255, 219, 0.7));
+            height: 3px;
+            transform-origin: left center;
+        }
+        .molecule-line:nth-child(4) {
+            width: 120px;
+            top: 30%;
+            left: 35%;
+            transform: rotate(30deg);
+        }
+        .molecule-line:nth-child(5) {
+            width: 100px;
+            top: 55%;
+            left: 45%;
+            transform: rotate(-20deg);
+        }
+        .molecule-line:nth-child(6) {
+            width: 140px;
+            top: 65%;
+            left: 30%;
+            transform: rotate(10deg);
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+            }
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 0 30px rgba(76, 175, 80, 0.8);
+            }
+        }
+    </style>
+    <script src="changeSlide.js"></script>
+    <link rel="stylesheet" href="windowFix.css">
+</head>
+<body>
+    <div class="slide">
+        <div class="content-wrapper">
+            <div class="left-content">
+                <h1 class="title">Factores de Transcripción en la Condrogénesis</h1>
+                <div class="decoration"></div>
+                <h2 class="subtitle">Modelo Computacional: Análisis de la dinámica de SP1, RUNX2 y ETS1</h2>
+                
+                <div class="icon-grid">
+                    <div class="icon-item">
+                        <i class="fas fa-dna icon"></i>
+                        <span class="icon-text">Biología Molecular</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-microscope icon"></i>
+                        <span class="icon-text">Condrogénesis</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-code icon"></i>
+                        <span class="icon-text">Modelo Computacional</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-content">
+                <div class="molecule">
+                    <div class="molecule-circle"></div>
+                    <div class="molecule-circle"></div>
+                    <div class="molecule-circle"></div>
+                    <div class="molecule-line"></div>
+                    <div class="molecule-line"></div>
+                    <div class="molecule-line"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

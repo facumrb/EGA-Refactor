@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinámica de Proteínas</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+        .slide {
+            width: 100vw;              /* 100% del ancho visible */
+            height: 100vh;             /* 100% del alto visible */
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(0, 59, 92, 0.9), rgba(0, 128, 128, 0.8));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            }
+        .header {
+            padding: 2rem 4rem 1rem;
+        }
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ffffff, #8cffdb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .content {
+            display: flex;
+            flex: 1;
+            padding: 0 4rem 2.5rem;
+        }
+        .left-content {
+            flex: 1;
+            padding-right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .equation-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #4caf50;
+            transition: transform 0.3s ease;
+        }
+        .equation-card:hover {
+            transform: translateY(-5px);
+        }
+        .equation-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #8cffdb;
+            display: flex;
+            align-items: center;
+        }
+        .equation-title i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        .equation-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .equation-desc {
+            font-size: 1rem;
+            text-align: center;
+        }
+        .terms-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .term-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+        .term-card:hover {
+            transform: translateY(-5px);
+        }
+        .term-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8cffdb;
+            text-align: center;
+        }
+        .term-list {
+            list-style-type: none;
+        }
+        .term-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .term-item:last-child {
+            margin-bottom: 0;
+        }
+        .term-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+        .term-icon i {
+            font-size: 0.75rem;
+            color: #8cffdb;
+        }
+        .term-text {
+            font-size: 0.9rem;
+        }
+        .method-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4caf50;
+            transition: transform 0.3s ease;
+        }
+        .method-card:hover {
+            transform: translateX(5px);
+        }
+        .method-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8cffdb;
+            display: flex;
+            align-items: center;
+        }
+        .method-title i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        .method-params {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .param-tag {
+            background: rgba(76, 175, 80, 0.2);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .steps-container {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .step-item {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .step-item:hover {
+            transform: translateY(-5px);
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #4caf50;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .step-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .key-point {
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.3), rgba(140, 255, 219, 0.2));
+            border-radius: 12px;
+            padding: 1.25rem;
+            border-left: 4px solid #4caf50;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: auto;
+        }
+        .key-point-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .highlight {
+            color: #8cffdb;
+            font-weight: 700;
+        }
+    </style>
+    <script src="changeSlide.js"></script>
+    <link rel="stylesheet" href="windowFix.css">
+</head>
+<body>
+    <div class="slide">
+        <div class="header">
+            <h1 class="title">Dinámica de Proteínas: Ecuaciones Diferenciales</h1>
+        </div>
+        <div class="content">
+            <div class="left-content">
+                <div class="equation-card">
+                    <div class="equation-title">
+                        <i class="fas fa-calculator"></i>
+                        Ecuación Diferencial Ordinaria
+                    </div>
+                    <div class="equation-content">
+                        \[ \frac{dy_i}{dt} = (producción_i \times activación_i) - (degradación_i \times y_i) \]
+                    </div>
+                    <div class="equation-desc">
+                        Balance entre síntesis y degradación de factores de transcripción
+                    </div>
+                </div>
+                
+                <div class="terms-container">
+                    <div class="term-card">
+                        <div class="term-title">
+                            <i class="fas fa-file-import"></i>
+                            Transcripción
+                        </div>
+                        <ul class="term-list">
+                            <li class="term-item">
+                                <div class="term-icon">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="term-text">Producción: Tasa basal</div>
+                            </li>
+                            <li class="term-item">
+                                <div class="term-icon">
+                                    <i class="fas fa-toggle-on"></i>
+                                </div>
+                                <div class="term-text">Activación: Efecto neto (0-1)</div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="term-card">
+                        <div class="term-title">
+                            <i class="fas fa-trash-alt"></i>
+                            Degradación
+                        </div>
+                        <ul class="term-list">
+                            <li class="term-item">
+                                <div class="term-icon">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </div>
+                                <div class="term-text">Tasa: Constante intrínseca</div>
+                            </li>
+                            <li class="term-item">
+                                <div class="term-icon">
+                                    <i class="fas fa-vial"></i>
+                                </div>
+                                <div class="term-text">yᵢ: Concentración actual</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <div class="equation-title">
+                        <i class="fas fa-chart-line"></i>
+                        Función de Activación Sigmoide
+                    </div>
+                    <div class="equation-content">
+                        \[ activación = \frac{1}{1 + e^{1-(interacción \times \sum y)}} \]
+                    </div>
+                    <div class="equation-desc">
+                        Modulación no lineal con umbrales críticos
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-content">
+                <div class="method-card">
+                    <div class="method-title">
+                        <i class="fas fa-cogs"></i>
+                        Método de Integración LSODA
+                    </div>
+                    <div class="method-params">
+                        <span class="param-tag">336 pasos</span>
+                        <span class="param-tag">168 horas</span>
+                        <span class="param-tag">Intervalos 0.5h</span>
+                        <span class="param-tag">Condiciones iniciales: [0.4, 0.05, 0.1]</span>
+                    </div>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-title">
+                        <i class="fas fa-random"></i>
+                        Adaptabilidad Dinámica
+                    </div>
+                    <div class="method-params">
+                        <span class="param-tag">Método explícito: Adams-Bashforth-Moulton</span>
+                        <span class="param-tag">Método implícito: BDF</span>
+                        <span class="param-tag">Cambio automático según rigidez</span>
+                    </div>
+                </div>
+                
+                <div class="method-card">
+                    <div class="method-title">
+                        <i class="fas fa-microscope"></i>
+                        Ventajas para Biología Molecular
+                    </div>
+                    <div class="method-params">
+                        <span class="param-tag">Regulación no lineal</span>
+                        <span class="param-tag">Múltiples interacciones</span>
+                        <span class="param-tag">Distintas escalas temporales</span>
+                    </div>
+                </div>
+                
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-text">Toma concentraciones actuales</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Calcula tasas de cambio</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-text">Avanza sistema en tiempo</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-text">Predice nuevas concentraciones</div>
+                    </div>
+                </div>
+                
+                <div class="key-point">
+                    <p class="key-point-text">
+                        Objetivo: <span class="highlight">SP1 (0.9)</span> • <span class="highlight">RUNX2 (1.0)</span> • <span class="highlight">ETS1 (0.8)</span> a las 168 horas
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
