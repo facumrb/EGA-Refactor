@@ -5,9 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
+import mpld3
+import webbrowser
 
 # Directorio donde se guardan los snapshots (asegúrate que coincide con la configuración de run_demo.py)
-snapshot_dir = "..\snapshots"
+snapshot_dir = "../snapshots"
 
 # Buscar archivos snapshot que sigan el patrón: snapshot_gen_*.json
 snapshot_files = sorted(glob.glob(os.path.join(snapshot_dir, "snapshot_gen_*.json")))
@@ -46,7 +48,15 @@ plt.title("Heatmap de Evolución de Parámetros por Generación")
 plt.xticks(ticks=np.arange(0.5, parameter_matrix.shape[1] + 0.5, 1), labels=np.arange(1, parameter_matrix.shape[1] + 1, 1))
 plt.yticks(ticks=np.arange(0.5, parameter_matrix.shape[0] + 0.5, 1), labels=np.arange(1, parameter_matrix.shape[0] + 1, 1)[::-1])
 plt.tight_layout()
-plt.show()
+# plt.show()
+# Convert matplotlib figure to HTML
+html_fig = mpld3.fig_to_html(plt.gcf())
+
+# Save HTML to file and open in default browser
+output_path = "visuals/heatmap.html"
+with open(output_path, "w") as f:
+    f.write(html_fig)
+webbrowser.open('file://' + os.path.realpath(output_path))
 
 # Guardar la figura si es necesario
 # plt.savefig("./visuals/heatmap.png", dpi=600)

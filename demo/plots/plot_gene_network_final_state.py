@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 # -----------------------------
 
 # Cargar la configuración para saber el número de proteínas
-with open("..\config.yaml", "r") as filehandler:
+with open("../config.yaml", "r") as filehandler:
     config = yaml.safe_load(filehandler)
 num_proteins = len(config.get("evaluator_params", {}).get("target", []))
 if num_proteins == 0:
@@ -19,7 +19,7 @@ if num_proteins == 0:
     exit(1)
 
 # Cargar el resultado final para obtener el mejor individuo
-with open("..\snapshots/final_result.json", "r") as filehandler:
+with open("../snapshots/final_result.json", "r") as filehandler:
     final_result = json.load(filehandler)
 best_individual_params = final_result.get("best", {}).get("params", [])
 if not best_individual_params:
