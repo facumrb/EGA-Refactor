@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 def load_configuration():
     """Carga la configuración desde config.yaml"""
-    with open("..\config.yaml", "r") as filehandler:
+    with open("../config.yaml", "r") as filehandler:
         config = yaml.safe_load(filehandler)
     num_proteins = len(config.get("evaluator_params", {}).get("target", []))
     if num_proteins == 0:
@@ -17,12 +17,12 @@ def load_configuration():
 def load_snapshot_data():
     """Carga los datos de los snapshots"""
     snapshot_files = sorted([
-        f for f in os.listdir('..\snapshots')
+        f for f in os.listdir('../snapshots')
         if f.startswith('snapshot_gen_') and f.endswith('.json')
     ])
     snapshots = []
     for snapshot_file in snapshot_files:
-        with open(f'..\snapshots/{snapshot_file}', 'r') as f:
+        with open(f'../snapshots/{snapshot_file}', 'r') as f:
             snapshots.append(json.load(f))
     return snapshots
 

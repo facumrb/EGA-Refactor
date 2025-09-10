@@ -1,9 +1,10 @@
 import json
 import os
 import matplotlib.pyplot as plt
+import mpld3
 
 # Ruta al archivo final_result.json generado en el directorio de snapshots
-snapshot_dir = os.path.join("..\snapshots")
+snapshot_dir = os.path.join("../snapshots")
 final_result_path = os.path.join(snapshot_dir, "final_result.json")
 
 # Cargar los datos del resultado final
@@ -27,4 +28,12 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 # plt.savefig("fitness_evolution.png", dpi=600)
-plt.show()
+# plt.show()
+
+# Convert matplotlib figure to HTML
+html_fig = mpld3.fig_to_html(plt.gcf())
+
+# Save HTML to file and open in default browser
+output_path = "visuals/fitness.html"
+with open(output_path, "w") as f:
+    f.write(html_fig)

@@ -10,3 +10,4 @@ networkx
 voila>=0.4.0
 jupyterlab
 ipywidgets
+mpld3

@@ -3,9 +3,10 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import mpld3
 
 # Ruta al snapshot final (se espera que incluya la población final)
-snapshot_dir = "..\snapshots"
+snapshot_dir = "../snapshots"
 final_result_path = os.path.join(snapshot_dir, "final_result.json")
 
 # Cargar los datos del snapshot final
@@ -102,4 +103,12 @@ plt.title("Dispersión: Fitness vs Complejidad")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.show()
+# plt.show()
+
+# Convert matplotlib figure to HTML
+html_fig = mpld3.fig_to_html(plt.gcf())
+
+# Save HTML to file and open in default browser
+output_path = "visuals/complexity_vs_fitness.html"
+with open(output_path, "w") as f:
+    f.write(html_fig)

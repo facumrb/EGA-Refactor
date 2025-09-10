@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 # Paso 1: Cargar la solución final y la configuración
 # -----------------------------
 # Cargar el archivo final_result.json
-snapshot_dir = "..\snapshots"
+snapshot_dir = "../snapshots"
 final_result_path = os.path.join(snapshot_dir, "final_result.json")
 with open(final_result_path, "r") as f:
     final_result = json.load(f)
@@ -26,7 +26,7 @@ if not y_values:
 y_final = [y_values[0][-1], y_values[1][-1], y_values[2][-1]]
 
 # Cargar la configuración para obtener el target
-config_path = os.path.join("..\config.yaml")
+config_path = os.path.join("../config.yaml")
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 target = config.get("evaluator_params", {}).get("target", None)
@@ -97,14 +97,9 @@ fig.update_layout(
     hovermode="x"
 )
 """
-# Mostrar el gráfico interactivo guardándolo en un archivo HTML
-output_path = "..\snapshots/target_comparison.html"
-fig.write_html(output_path)
-
-print(f"Gráfico guardado en: {os.path.abspath(output_path)}")
 
 # Mostrar el gráfico interactivo
 fig.show()
 
 # Guardar la figura como HTML
-fig.write_html("./visuals/target_comparison.html", auto_open=False)
+fig.write_html("./visuals/target_comparison.html", auto_open=True)
