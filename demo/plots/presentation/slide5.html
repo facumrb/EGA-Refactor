@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factores de Transcripción Clave</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+        .slide {
+            width: 100vw;              /* 100% del ancho visible */
+            height: 100vh;             /* 100% del alto visible */
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(0, 59, 92, 0.9), rgba(0, 128, 128, 0.8));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            }
+        .header {
+            padding: 2rem 4rem 1rem;
+        }
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ffffff, #8cffdb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .content {
+            display: flex;
+            flex: 1;
+            padding: 0 4rem 2.5rem;
+        }
+        .left-content {
+            flex: 1;
+            padding-right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #8cffdb;
+            display: flex;
+            align-items: center;
+        }
+        .section-title i {
+            margin-right: 0.75rem;
+            font-size: 1.5rem;
+        }
+        .factor-cards {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .factor-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        .factor-card:hover {
+            transform: translateY(-5px);
+        }
+        .factor-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .factor-icon i {
+            font-size: 1.75rem;
+            color: #8cffdb;
+        }
+        .factor-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #8cffdb;
+        }
+        .factor-role {
+            font-size: 1rem;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .interaction-points {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .interaction-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .interaction-item:last-child {
+            margin-bottom: 0;
+        }
+        .interaction-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .interaction-icon i {
+            font-size: 1rem;
+            color: #8cffdb;
+        }
+        .interaction-text {
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+        .factor-name-highlight {
+            color: #8cffdb;
+            font-weight: 700;
+        }
+        .image-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .image-container img {
+            max-width: 90%;
+            max-height: 220px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .table-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: rgba(76, 175, 80, 0.3);
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        td {
+            padding: 0.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+        }
+        .implications {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .implication-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .implication-item:last-child {
+            margin-bottom: 0;
+        }
+        .implication-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .implication-icon i {
+            font-size: 1rem;
+            color: #8cffdb;
+        }
+        .implication-text {
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+        .key-point {
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.3), rgba(140, 255, 219, 0.2));
+            border-radius: 12px;
+            padding: 1.25rem;
+            border-left: 4px solid #4caf50;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .key-point-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .highlight {
+            color: #8cffdb;
+            font-weight: 700;
+        }
+    </style>
+    <script src="changeSlide.js"></script>
+    <link rel="stylesheet" href="windowFix.css">
+</head>
+<body>
+    <div class="slide">
+        <div class="header">
+            <h1 class="title">Factores de Transcripción Clave</h1>
+        </div>
+        <div class="content">
+            <div class="left-content">
+                <div class="factor-cards">
+                    <div class="factor-card">
+                        <div class="factor-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="factor-name">SP1</div>
+                        <div class="factor-role">Función generalista y sostenedora</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-icon">
+                            <i class="fas fa-dna"></i>
+                        </div>
+                        <div class="factor-name">RUNX2</div>
+                        <div class="factor-role">Organizador de maduración e hipertrofia</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <div class="factor-name">ETS1</div>
+                        <div class="factor-role">Cofactor modulador que afina respuestas</div>
+                    </div>
+                </div>
+                
+                <div class="interaction-points">
+                    <div class="section-title">
+                        <i class="fas fa-sync-alt"></i>
+                        Interacciones Dinámicas
+                    </div>
+                    <div class="interaction-item">
+                        <div class="interaction-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="interaction-text">
+                            <span class="factor-name-highlight">SP1:</span> Función basal (proliferación, adhesión)
+                        </div>
+                    </div>
+                    <div class="interaction-item">
+                        <div class="interaction-icon">
+                            <i class="fas fa-dna"></i>
+                        </div>
+                        <div class="interaction-text">
+                            <span class="factor-name-highlight">RUNX2:</span> Función creciente y escalonada
+                        </div>
+                    </div>
+                    <div class="interaction-item">
+                        <div class="interaction-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <div class="interaction-text">
+                            <span class="factor-name-highlight">ETS1:</span> Cooperación en condensación y producción
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="./Proteínas.png" alt="Factores de transcripción">
+                </div>
+            </div>
+            
+            <div class="right-content">
+                <div class="table-container">
+                    <div class="section-title">
+                        <i class="fas fa-table"></i>
+                        Concentración Funcional por Etapa
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Etapa</th>
+                                <th>SP1</th>
+                                <th>RUNX2</th>
+                                <th>ETS1</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Neuroectodérmico</td>
+                                <td>0.4</td>
+                                <td>0.05</td>
+                                <td>0.1</td>
+                            </tr>
+                            <tr>
+                                <td>Condensación</td>
+                                <td>0.7</td>
+                                <td>0.3</td>
+                                <td>0.6</td>
+                            </tr>
+                            <tr>
+                                <td>Diferenciación</td>
+                                <td>0.8</td>
+                                <td>0.6</td>
+                                <td>0.7</td>
+                            </tr>
+                            <tr>
+                                <td>Proliferación</td>
+                                <td>0.9</td>
+                                <td>1.0</td>
+                                <td>0.8</td>
+                            </tr>
+                            <tr>
+                                <td>Maduración/Hipertrofia</td>
+                                <td>0.5</td>
+                                <td>1.0</td>
+                                <td>0.6</td>
+                            </tr>
+                            <tr>
+                                <td>Calcificación/Osificación</td>
+                                <td>0.2</td>
+                                <td>0.8</td>
+                                <td>0.3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="implications">
+                    <div class="section-title">
+                        <i class="fas fa-lightbulb"></i>
+                        Implicaciones del Modelo
+                    </div>
+                    <div class="implication-item">
+                        <div class="implication-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="implication-text">
+                            <span class="highlight">Dinámica temporal conjunta</span> más relevante que niveles aislados
+                        </div>
+                    </div>
+                    <div class="implication-item">
+                        <div class="implication-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="implication-text">
+                            Identificación de <span class="highlight">ventanas críticas</span> para intervención
+                        </div>
+                    </div>
+                    <div class="implication-item">
+                        <div class="implication-icon">
+                            <i class="fas fa-medkit"></i>
+                        </div>
+                        <div class="implication-text">
+                            Estrategias más efectivas en regeneración y tratamiento
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="key-point">
+                    <p class="key-point-text">
+                        Vector objetivo para condrocito maduro: SP1 (0.9), RUNX2 (1.0), ETS1 (0.8)
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
