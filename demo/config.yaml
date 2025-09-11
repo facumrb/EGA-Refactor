@@ -58,7 +58,7 @@ evaluator_params:
   - 0.1
   min_degradation_rate: 1e-3
   min_production_rate: 1e-6
-  noise_std: 0.05
+  noise_std: 0.12
   reached_reward_value: -0.01
   seed: 42
   t_span:
@@ -71,5 +71,5 @@ evaluator_params:
 snapshot_dir: snapshots
 spaghetti_plot:
   enabled: true
-  noise_std_factor: 0.5
+  noise_std_factor: 0.12
   num_simulations: 100
