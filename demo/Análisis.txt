@@ -46,123 +46,122 @@ Esta separación permite, por ejemplo, cambiar el modelo biológico por uno comp
 - Parámetros Críticos : Los parámetros en config.yaml no son triviales. Definen tanto el comportamiento del algoritmo de búsqueda (ej. populationSize , mutation_rate ) como la propia definición del problema biológico (ej. target , t_span ). Un mal ajuste aquí puede llevar a que el algoritmo nunca encuentre una buena solución o tarde demasiado.
 
 
-==================================================
 MEJORES PARÁMETROS ENCONTRADOS:
 Estrategia: center
-Tamaño de la población: 11
-Generaciones: 15
+Tamaño de la población: 21
+Generaciones: 13
 
 RESULTADOS:
-Fitness: 0.01873178506452589
-Último fitness promedio: 0.054604619605907144
-Distancia a valores objetivo: 0.040813567627245355
-Valores finales: [0.9662675011554206, 0.808966498341226, 0.5788465669060322]
-Valores objetivo: [1.0, 0.8, 0.6]
-Puntuación final: 0.009190974801918767
+Fitness: 0.07613301180883213
+Último fitness promedio: 0.22618026193441074
+Distancia a valores objetivo: 0.031717556494307325
+Valores finales: [0.8917965540108554, 0.998157326632536, 0.7694171384802926]
+Valores objetivo: [0.9, 1.0, 0.8]
+Puntuación final: 0.02785653715532283
 
 ==================================================
 ANÁLISIS DE TENDENCIAS:
 
 Top 5 mejores combinaciones:
-1. Estrategia: center, Tamaño de población: 11, Generaciones: 15, Score: 0.0092
-2. Estrategia: uniform, Tamaño de población: 22, Generaciones: 22, Score: 0.0104
-3. Estrategia: uniform, Tamaño de población: 33, Generaciones: 19, Score: 0.0105
-4. Estrategia: uniform, Tamaño de población: 16, Generaciones: 25, Score: 0.0109
-5. Estrategia: center, Tamaño de población: 11, Generaciones: 19, Score: 0.0112
+1. Estrategia: center, Tamaño de población: 21, Generaciones: 13, Score: 0.0279
+2. Estrategia: uniform, Tamaño de población: 42, Generaciones: 14, Score: 0.0372
+3. Estrategia: center, Tamaño de población: 30, Generaciones: 16, Score: 0.0387
+4. Estrategia: uniform, Tamaño de población: 76, Generaciones: 13, Score: 0.0396
+5. Estrategia: uniform, Tamaño de población: 22, Generaciones: 9, Score: 0.0404
 
 Rendimiento promedio por estrategia:
-Estrategia 'uniform': 0.0588
-Estrategia 'center': 0.0396
+Estrategia 'uniform': 0.1792
+Estrategia 'center': 0.1619
 
 Rendimiento promedio por tamaño de población:
-Tamaño de población 10: 0.0567
-Tamaño de población 11: 0.0470
-Tamaño de población 12: 0.0489
-Tamaño de población 13: 0.0508
-Tamaño de población 14: 0.0434
-Tamaño de población 15: 0.0474
-Tamaño de población 16: 0.0465
-Tamaño de población 17: 0.0477
-Tamaño de población 18: 0.0498
-Tamaño de población 19: 0.0445
-Tamaño de población 20: 0.0489
-Tamaño de población 21: 0.0454
-Tamaño de población 22: 0.0453
-Tamaño de población 23: 0.0479
-Tamaño de población 24: 0.0478
-Tamaño de población 25: 0.0485
-Tamaño de población 26: 0.0461
-Tamaño de población 27: 0.0520
-Tamaño de población 28: 0.0476
-Tamaño de población 29: 0.0493
-Tamaño de población 30: 0.0483
-Tamaño de población 31: 0.0550
-Tamaño de población 32: 0.0515
-Tamaño de población 33: 0.0437
-Tamaño de población 34: 0.0508
-Tamaño de población 35: 0.0507
-Tamaño de población 36: 0.0483
-Tamaño de población 37: 0.0540
-Tamaño de población 38: 0.0565
-Tamaño de población 39: 0.0468
-Tamaño de población 40: 0.0475
-Tamaño de población 41: 0.0483
-Tamaño de población 42: 0.0514
-Tamaño de población 43: 0.0518
-Tamaño de población 44: 0.0521
-Tamaño de población 45: 0.0506
-Tamaño de población 46: 0.0505
-Tamaño de población 47: 0.0482
-Tamaño de población 48: 0.0447
-Tamaño de población 49: 0.0510
-Tamaño de población 50: 0.0475
-Tamaño de población 51: 0.0465
-Tamaño de población 52: 0.0486
-Tamaño de población 53: 0.0502
-Tamaño de población 54: 0.0493
-Tamaño de población 55: 0.0483
-Tamaño de población 56: 0.0532
-Tamaño de población 57: 0.0498
-Tamaño de población 58: 0.0498
-Tamaño de población 59: 0.0476
-Tamaño de población 60: 0.0495
-Tamaño de población 61: 0.0478
-Tamaño de población 62: 0.0479
-Tamaño de población 63: 0.0479
-Tamaño de población 64: 0.0468
-Tamaño de población 65: 0.0495
-Tamaño de población 66: 0.0517
-Tamaño de población 67: 0.0491
-Tamaño de población 68: 0.0483
-Tamaño de población 69: 0.0501
-Tamaño de población 70: 0.0528
-Tamaño de población 71: 0.0527
-Tamaño de población 72: 0.0508
-Tamaño de población 73: 0.0486
-Tamaño de población 74: 0.0514
-Tamaño de población 75: 0.0514
-Tamaño de población 76: 0.0478
-Tamaño de población 77: 0.0522
-Tamaño de población 78: 0.0511
-Tamaño de población 79: 0.0483
-Tamaño de población 80: 0.0522
-Tamaño de población 81: 0.0482
-Tamaño de población 82: 0.0467
-Tamaño de población 83: 0.0479
-Tamaño de población 84: 0.0478
-Tamaño de población 85: 0.0471
-Tamaño de población 86: 0.0512
-Tamaño de población 87: 0.0498
-Tamaño de población 88: 0.0461
-Tamaño de población 89: 0.0487
-Tamaño de población 90: 0.0474
-Tamaño de población 91: 0.0490
-Tamaño de población 92: 0.0476
-Tamaño de población 93: 0.0507
-Tamaño de población 94: 0.0506
-Tamaño de población 95: 0.0504
-Tamaño de población 96: 0.0503
-Tamaño de población 97: 0.0472
-Tamaño de población 98: 0.0468
-Tamaño de población 99: 0.0494
-Tamaño de población 100: 0.0512
+Tamaño de población 10: 0.3644
+Tamaño de población 11: 0.1753
+Tamaño de población 12: 0.2511
+Tamaño de población 13: 0.1530
+Tamaño de población 14: 0.1708
+Tamaño de población 15: 0.1801
+Tamaño de población 16: 0.1747
+Tamaño de población 17: 0.1913
+Tamaño de población 18: 0.1713
+Tamaño de población 19: 0.1605
+Tamaño de población 20: 0.1717
+Tamaño de población 21: 0.1615
+Tamaño de población 22: 0.1849
+Tamaño de población 23: 0.1946
+Tamaño de población 24: 0.1847
+Tamaño de población 25: 0.1687
+Tamaño de población 26: 0.1874
+Tamaño de población 27: 0.1937
+Tamaño de población 28: 0.1632
+Tamaño de población 29: 0.1638
+Tamaño de población 30: 0.1722
+Tamaño de población 31: 0.1641
+Tamaño de población 32: 0.1709
+Tamaño de población 33: 0.1859
+Tamaño de población 34: 0.1629
+Tamaño de población 35: 0.1786
+Tamaño de población 36: 0.1732
+Tamaño de población 37: 0.1687
+Tamaño de población 38: 0.1622
+Tamaño de población 39: 0.1673
+Tamaño de población 40: 0.1537
+Tamaño de población 41: 0.1646
+Tamaño de población 42: 0.1634
+Tamaño de población 43: 0.1682
+Tamaño de población 44: 0.1623
+Tamaño de población 45: 0.1772
+Tamaño de población 46: 0.1744
+Tamaño de población 47: 0.1588
+Tamaño de población 48: 0.1651
+Tamaño de población 49: 0.1760
+Tamaño de población 50: 0.1748
+Tamaño de población 51: 0.1577
+Tamaño de población 52: 0.1784
+Tamaño de población 53: 0.1748
+Tamaño de población 54: 0.1791
+Tamaño de población 55: 0.1718
+Tamaño de población 56: 0.1629
+Tamaño de población 57: 0.1641
+Tamaño de población 58: 0.1532
+Tamaño de población 59: 0.1726
+Tamaño de población 60: 0.1813
+Tamaño de población 61: 0.1704
+Tamaño de población 62: 0.1768
+Tamaño de población 63: 0.1703
+Tamaño de población 64: 0.1697
+Tamaño de población 65: 0.1642
+Tamaño de población 66: 0.1596
+Tamaño de población 67: 0.1562
+Tamaño de población 68: 0.1600
+Tamaño de población 69: 0.1769
+Tamaño de población 70: 0.1602
+Tamaño de población 71: 0.1676
+Tamaño de población 72: 0.1654
+Tamaño de población 73: 0.1694
+Tamaño de población 74: 0.1549
+Tamaño de población 75: 0.1639
+Tamaño de población 76: 0.1712
+Tamaño de población 77: 0.1673
+Tamaño de población 78: 0.1659
+Tamaño de población 79: 0.1663
+Tamaño de población 80: 0.1792
+Tamaño de población 81: 0.1671
+Tamaño de población 82: 0.1637
+Tamaño de población 83: 0.1718
+Tamaño de población 84: 0.1538
+Tamaño de población 85: 0.1655
+Tamaño de población 86: 0.1667
+Tamaño de población 87: 0.1620
+Tamaño de población 88: 0.1567
+Tamaño de población 89: 0.1635
+Tamaño de población 90: 0.1553
+Tamaño de población 91: 0.1576
+Tamaño de población 92: 0.1543
+Tamaño de población 93: 0.1423
+Tamaño de población 94: 0.1635
+Tamaño de población 95: 0.1439
+Tamaño de población 96: 0.1624
+Tamaño de población 97: 0.1677
+Tamaño de población 98: 0.1563
+Tamaño de población 99: 0.1539
+Tamaño de población 100: 0.1504
