@@ -12,10 +12,6 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from typing import Dict
 
-# Constantes para la configuración del evaluador y la función de fitness
-DEFAULT_TARGET = np.array([1.0, 0.8, 0.6])
-DEFAULT_BOUNDS = np.array([[0.1, 3.0], [0.01, 1.0], [-3.0, 3.0]] * 3)
-
 class ToyODEEvaluator:
     """
     Clase que evalúa individuos (conjuntos de parámetros) para el modelo de EDOs.

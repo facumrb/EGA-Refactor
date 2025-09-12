@@ -122,5 +122,7 @@ finally:
     sys.stderr.close()
     sys.stderr = original_stderr
 
+if not os.path.exists("./visuals"):
+        os.makedirs("./visuals")
 # Exportar el gráfico interactivo a un archivo HTML
 fig.write_html("./visuals/spaghetti.html", auto_open=True)

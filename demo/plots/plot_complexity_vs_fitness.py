@@ -107,7 +107,8 @@ plt.tight_layout()
 
 # Convert matplotlib figure to HTML
 html_fig = mpld3.fig_to_html(plt.gcf())
-
+if not os.path.exists("./visuals"):
+        os.makedirs("./visuals")
 # Save HTML to file and open in default browser
 output_path = "visuals/complexity_vs_fitness.html"
 with open(output_path, "w") as f:

@@ -100,6 +100,7 @@ fig.update_layout(
 
 # Mostrar el gráfico interactivo
 fig.show()
-
+if not os.path.exists("./visuals"):
+        os.makedirs("./visuals")
 # Guardar la figura como HTML
 fig.write_html("./visuals/target_comparison.html", auto_open=True)
