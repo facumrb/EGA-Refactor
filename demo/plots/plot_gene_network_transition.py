@@ -166,6 +166,8 @@ if __name__ == "__main__":
         ),
         frames=frames
     )
+    if not os.path.exists("./visuals"):
+        os.makedirs("./visuals")
 
     # Guardar la animación en un archivo HTML
     fig.write_html("./visuals/gene_network_transition.html", auto_open=True)

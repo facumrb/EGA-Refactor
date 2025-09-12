@@ -50,9 +50,10 @@ def plot_3d_trajectory(file_path="../snapshots/final_result.json"):
         ),
         margin=dict(l=0, r=0, b=0, t=40)
     )
-
+    if not os.path.exists("./visuals"):
+        os.makedirs("./visuals")
     # Guardar la figura como HTML
     fig.write_html("./visuals/3d_trajectory.html", auto_open=True)
-
+    
 if __name__ == "__main__":
     plot_3d_trajectory()

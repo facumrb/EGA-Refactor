@@ -168,7 +168,8 @@ fig = go.Figure(data=[*edge_traces, node_trace],
                 xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
             )
-
+if not os.path.exists("./visuals"):
+        os.makedirs("./visuals")
 # Guardar y mostrar
 output_path = "./visuals/gene_network_final_state.html"
 fig.write_html(output_path, auto_open=True)

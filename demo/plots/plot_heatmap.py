@@ -51,7 +51,8 @@ plt.tight_layout()
 # plt.show()
 # Convert matplotlib figure to HTML
 html_fig = mpld3.fig_to_html(plt.gcf())
-
+if not os.path.exists("./visuals"):
+        os.makedirs("./visuals")
 # Save HTML to file and open in default browser
 output_path = "visuals/heatmap.html"
 with open(output_path, "w") as f:
