@@ -6,7 +6,7 @@ El proyecto se centra en un problema de optimización de sistemas de ecuaciones 
 
 ## Guía de Uso
 
-Lectura Inicial de la `Guía.md` en `demo` y profundización con la `Teoría.md` en.
+Lectura Inicial de la `Guía.md` en `demo` y profundización con la `Teoría.md`.
 Para explorar y ejecutar este proyecto, por favor, seguí los siguientes pasos en orden.
 
 1.  **Clonar el repositorio:** Comenzá clonando este repositorio en tu máquina local. Podes hacerlo usando `git clone` en la terminal:
@@ -56,5 +56,6 @@ El corazón de este proyecto se encuentra en la carpeta `demo/`. Contiene todos 
 Dentro de la carpeta `demo/`, encontrarás el archivo `Guía.md`. Este documento es el punto de partida. Léelo para obtener una visión general de cómo funciona la demostración, cómo se interconectan los archivos y cómo ejecutar el programa.
 
 ### 4. Profundización con la `Teoría.md`
+
 
 Una vez que guiado por `Guía.md`, sumergite en `Teoría.md`. Este archivo explica los fundamentos teóricos detrás del proyecto:, incluye el modelado de redes de genes con Ecuaciones Diferenciales Ordinarias (EDOs) para simular su comportamiento, y el uso de un Algoritmo Genético Elitista (EGA) para "evolucionar" una población de posibles soluciones (conjuntos de parámetros) hasta encontrar la que mejor se ajusta al comportamiento deseado.
