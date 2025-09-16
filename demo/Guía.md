@@ -2,7 +2,7 @@
 
 ### ¿Cuál es la teoría detrás de la demo?
 Para entender en profundidad el funcionamiento de la demo, se recomienda leer el documento "Teoría.md". En este documento se explica todo lo necesario para entender el proyecto completo.
-Una vez comprendida la teoría, se debe avanzar a la siguiente sección, en caso de querer una visión resumida del proyecto.
+Antes o después de comprender la teoría, se debe avanzar a la siguiente sección, en caso de querer una visión resumida del proyecto.
 
 ### ¿Para qué sirve cada archivo?
 1. 
