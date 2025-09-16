@@ -32,6 +32,14 @@ Esto instalará todas las bibliotecas necesarias para ejecutar el proyecto.
 
 Se recomienda utilizar un [entorno virtual](https://docs.python.org/3/tutorial/venv.html) para aislar las dependencias de este proyecto.
 
+4. **Ejecutar la Demostración:**
+
+    ```bash
+    python run_demo.py
+    ```
+
+    Esto iniciará la ejecución del algoritmo genético con los valores de `config.yaml`. Podés monitorear el progreso en la terminal y ver los resultados generados en la carpeta `snapshots/`. Luego es posible ejecutar las visualizaciones que se deseen de los resultados en `snapshots/`, tales visualizaciones pueden ejecutarse en los `plot_..py` de `plots/`.
+
 ### 2. Exploración de la Carpeta `demo`
 
 El corazón de este proyecto se encuentra en la carpeta `demo/`. Contiene todos los archivos necesarios para ejecutar una demostración completa del EGA.
@@ -41,7 +49,7 @@ El corazón de este proyecto se encuentra en la carpeta `demo/`. Contiene todos 
 -   `evaluator_toy.py`: Define el problema específico a optimizar (el sistema de EDOs) y la función de fitness.
 -   `config.yaml`: Archivo de configuración para ajustar los parámetros del algoritmo sin modificar el código.
 -   `Guía.md`: Documentación de soporte.
--   Los demás archivos son un Notebook de Jupyter (RegeneraciónCelular [NO ESTÁ COMPLETO]), `compare_simulations.py` (genera los resultados optimizados, y la mejor configuración), los plots y `presentation` en  `plots` para visualización (se recomienda ver la presentación para información clara y concisa desde `slide1.html`), y `originial_config.yaml` es la configuración antigua original con comentarios.
+-   Los demás archivos son un Notebook de Jupyter (RegeneraciónCelular [NO ESTÁ COMPLETO]), `compare_simulations.py` (genera los resultados optimizados, y la mejor configuración), los `plot_..py` y `presentation` en  `plots/` para visualización (se recomienda ver la presentación para información clara y concisa desde `slide1.html`), el estudio científico "Condrogénesis Computacional" en `estudio científicio`, y `originial_config.yaml` es la configuración antigua original con comentarios.
 
 ### 3. Lectura Inicial de la `Guía.md`
 
