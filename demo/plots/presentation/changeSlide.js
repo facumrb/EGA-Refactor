@@ -4,7 +4,7 @@ document.addEventListener("keydown", function(event) {
     if (!match) return; // Si no coincide, no hace nada
 
     let currentPage = parseInt(match[1]);
-    totalPages = 18;
+    totalPages = 19;
 
     if (event.key === "ArrowRight" && currentPage < totalPages) {
       // Navega a la siguiente página
