@@ -11,22 +11,10 @@ graph TD
     C --> D{Inicializa EGA y Evaluador};
     D --> E[ega_core.py - El Optimizador];
     D --> F[evaluator_toy.py - El Sistema Biológico];
-    E -- 3. [Propone soluciones] --> G((Bucle Evolutivo));
-    F -- 5. [Devuelve 'fitness'] --> G;
-    G -- 4. [Evalúa cada individuo] --> F;
-    G -- 6. [Reporta resultado final] --> H[Consola / Snapshots];
-
-    subgraph "Flujo Principal"
-        B
-        C
-        D
-    end
-
-    subgraph "Ciclo de Optimización"
-        E
-        F
-        G
-    end
+    E -- Propone soluciones --> G((Bucle Evolutivo));
+    F -- Devuelve 'fitness' --> G;
+    G -- Evalúa cada individuo --> F;
+    G -- Reporta resultado final --> H[Consola / Snapshots];
 ```
 
 [ ega_core.py ] <--------- (4. Bucle Evolutivo) --------> [ evaluator_toy.py ]
