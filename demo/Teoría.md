@@ -46,22 +46,6 @@ La forma más simple de una EDO para la concentración de una proteína P es:
 *   **El Problema Inverso - De la Dinámica a los Parámetros**
     En muchos escenarios, tenemos datos experimentales sobre el comportamiento de un sistema (ej. una serie temporal de la expresión de un gen), pero desconocemos los parámetros cinéticos exactos que generan esa dinámica. Este es el problema inverso o de estimación de parámetros. El objetivo es encontrar los valores de los parámetros ($\beta$, $\gamma$, `inter`) que mejor se ajusten a los datos experimentales. 
     
-    Para resolverlo, definimos una función objetivo (o de coste), J(θ) , donde θ es el vector de parámetros de nuestro modelo. En nuestro caso, la implementación es una versión específica de este problema. La función de coste no compara toda la trayectoria temporal, sino que se enfoca en si el sistema alcanza un **estado final deseado**.
-
-    La función `evaluate` en `evaluator_toy.py` es nuestra función objetivo. Internamente, primero llama a la función `simulate`, que resuelve las EDOs con un conjunto de parámetros `θ` para obtener el estado final del sistema, `y_final(θ)`.
-
-    Luego, `evaluate` calcula una puntuación de 'fitness' que, en nuestro caso, es un coste a minimizar. Este coste se compone de varios términos, como se ve en el código:
-
-    1.  **Distancia L2 (`L2_distance`)**: Mide la distancia euclidiana entre el estado final y el objetivo.
-    2.  **Penalización por Complejidad (`complexity_penalty`)**: Añade un coste si la red reguladora es demasiado compleja, favoreciendo soluciones más simples.
-    3.  **Recompensa por Alcance (`reached_reward`)**: Otorga una bonificación si el estado final está suficientemente cerca del objetivo, para acelerar la convergencia.
-
-    El objetivo final es encontrar el conjunto de parámetros `θ*` que minimice esta función de coste compuesta:
-
-    `θ* = argmin J(θ)`
-
-    Dado que el espacio de parámetros `θ` es vasto y la topología de la función de coste puede ser compleja, necesitamos un algoritmo de búsqueda robusto como los algoritmos evolutivos para explorar eficientemente este espacio y encontrar una solución óptima.
-
 ## **Módulo 2: La Solución Inspirada en la Naturaleza: Algoritmos Genéticos**
 ### **Tema 1: El "Fitness": ¿Qué tan buena es una solución?**
 *   **Del Problema Inverso al Paisaje de Fitness** 
@@ -72,7 +56,7 @@ La forma más simple de una EDO para la concentración de una proteína P es:
 
 El objetivo del algoritmo es, por lo tanto, encontrar los parámetros que minimicen esta función de coste compuesta, equilibrando la cercanía al objetivo con la simplicidad del modelo. En la conclusión del Módulo 1, establecimos nuestro problema central: el problema inverso. Disponemos de un modelo de sistema dinámico, nuestra red de regulación génica en `evaluator_toy.py`, y un comportamiento objetivo (`target`). La tarea consiste en encontrar el vector de parámetros θ* que minimiza una función de coste J(θ), la cual cuantifica la discrepancia entre la dinámica simulada y la objetivo.
     θ* = argmin J(θ)
-    Debemos conceptualizar la función J(θ) como un paisaje de fitness (o, más precisamente, un paisaje de coste). Este es un hiperplano donde cada punto corresponde a un vector de parámetros θ y su altitud viene dada por el valor de J(θ). Nuestro objetivo es encontrar el punto más bajo (el mínimo global) en este paisaje. Este es el punto que nos da los mejores parámetros para nuestro modelo. En otras palabras, estamos buscando el vector θ* que minimice la función de coste J(θ). En términos más simples, estamos buscando los parámetros que mejor se ajusten a los datos experimentales.
+    Debemos conceptualizar la función J(θ) como un paisaje de fitness (o, más precisamente, un paisaje de coste). Nuestro objetivo es encontrar el punto más bajo (el mínimo global) en este paisaje. Este es el punto que nos da los mejores parámetros para nuestro modelo. En otras palabras, estamos buscando el vector θ* que minimice la función de coste J(θ). En términos más simples, estamos buscando los parámetros que mejor se ajusten a los datos experimentales.
     Ahora, considera la naturaleza de este paisaje. Dada la no linealidad de las EDOs que modelan las interacciones génicas, este paisaje es complejo, multimodal (con múltiples mínimos locales) y de alta dimensionalidad. Los métodos de optimización basados en gradiente, aunque eficientes, corren un alto riesgo de quedar atrapados en mínimos locales. Resolver para θ* analíticamente es, en la mayoría de los casos, intratable. Por lo tanto, necesitamos un método de búsqueda que sea robusto, capaz de explorar eficazmente este vasto espacio de parámetros y que no dependa de la información del gradiente. Aquí es donde entran en juego las heurísticas de optimización global, y específicamente, los Algoritmos Genéticos.
 
 ### **Tema 2: La Teoría de la Evolución de Darwin.**
