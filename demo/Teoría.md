@@ -21,31 +21,46 @@ Una GRN es un sistema dinámico. Su 'estado' en cualquier instante de tiempo t p
 *   **Formalismo Matemático - Ecuaciones Diferenciales Ordinarias (EDOs)**
 Un modelo es una simplificación de la realidad que nos ayuda a entenderla. Usamos las matemáticas para describir procesos biológicos. Por ejemplo, podemos escribir una ecuación que describa cómo cambia la cantidad de una proteína con el tiempo. Todo el archivo `evaluator_toy.py` es un **modelo matemático** de la red génica. La función `_ode_system` define las ecuaciones que gobiernan el comportamiento de nuestro sistema biológico simplificado: calcula la "tasa de cambio" (`dydt`) para cada una de las 3 proteínas basándose en sus parámetros de producción (`prod`), degradación (`deg`) e interacción (`inter`). Para describir la evolución temporal del estado de nuestro sistema, recurrimos al lenguaje del cálculo: las Ecuaciones Diferenciales Ordinarias (EDOs). Una EDO nos permite expresar la tasa de cambio instantánea de una variable (la concentración de una proteína, d[P]/dt) en función del estado actual del sistema.
 *   **Anatomía de la Ecuación**
-La forma más simple de una EDO para la concentración de una proteína P es: **d[P]/dt = Tasa de Producción - Tasa de Degradación**
-    * La Tasa de Degradación a menudo se modela como un proceso de primer orden, proporcional a la concentración actual: γ * [P]. Se asume que la proteína se degrada de forma proporcional a su concentración actual. γ es una constante de degradación (1/t).
-    * La Tasa de Producción es el término más interesante. En ausencia de regulación, es una constante basal β. β es una constante de producción (concentración/tiempo). Sin embargo, la regulación por parte de factores de transcripción (activadores A, represores R) modula este término. A y R son las concentraciones de los activadores y represores, respectivamente. Funciones como la de Michaelis-Menten o, más comúnmente, la función de Hill, se utilizan para modelar la naturaleza sigmoidal y cooperativa de estas interacciones: Producción Regulada = β * (A^n / (K^n + A^n)), donde n es la cooperación de Hill (número de factores de transcripción que deben estar activos para activar la proteína), K es la concentración del activador A necesaria para alcanzar la mitad de la producción máxima, y "sigmoidal" es la forma en que una célula responde gradualmente a una señal, pero con un comportamiento de umbral: Poca señal → poca respuesta, Señal suficiente → respuesta rápida, y Mucha señal → respuesta saturada.
+La forma más simple de una EDO para la concentración de una proteína P es: 
+    $$d[P]/dt = Tasa \,\, de \,\, Producción - Tasa \,\, de \,\, Degradación$$
+    * La Tasa de Degradación a menudo se modela como un proceso de primer orden, proporcional a la concentración actual:
+    $$Tasa \,\, de \,\, Degradación = \gamma * [P]$$
+    Se asume que la proteína se degrada de forma proporcional a su concentración actual. $\gamma$ es una constante de degradación ($1/t$).
+    * La Tasa de Producción es el término más interesante. En ausencia de regulación, es una constante basal $\beta$. $\beta$ es una constante de producción ($concentración/tiempo$). Sin embargo, la regulación por parte de factores de transcripción (activadores $A$, represores $R$) modula este término. $A$ y $R$ son las concentraciones de los activadores y represores, respectivamente. Funciones como la de Michaelis-Menten o, más comúnmente, la función de Hill, se utilizan para modelar la naturaleza sigmoidal y cooperativa de estas interacciones:
+    $$Tasa \,\, de \,\, Producción = \beta * (A^n / (K^n + A^n))$$
+    Donde $n$ es la cooperación de $Hill$ (número de factores de transcripción que deben estar activos para activar la proteína), $K$ es la concentración del activador $A$ necesaria para alcanzar la mitad de la producción máxima, y "sigmoidal" es la forma en que una célula responde gradualmente a una señal, pero con un comportamiento de umbral:
+    Poca señal → poca respuesta, Señal suficiente → respuesta rápida, y Mucha señal → respuesta saturada.
 
-    **Nota sobre la Implementación en `evaluator_toy.py`:** Es crucial notar que, si bien la función de Hill es el modelo canónico, la implementación en `evaluator_toy.py` utiliza una simplificación conceptualmente equivalente. En lugar de modelar la activación por un factor específico `A`, el código emplea una función sigmoide general que depende de la suma de todas las concentraciones de proteínas del sistema (`S`). La expresión `activation = sigmoid(inter * S)` captura la misma propiedad cualitativa de una respuesta sigmoidal (un interruptor suave y saturable), pero lo hace de una manera más abstracta y con menos parámetros, asumiendo que el "estado general" de la red influye en la expresión génica.
+    **Nota sobre la Implementación en `evaluator_toy.py`:** Es crucial notar que, si bien la función de $Hill$ es el modelo canónico, la implementación en `evaluator_toy.py` utiliza una simplificación conceptualmente equivalente. En lugar de modelar la activación por un factor específico $A$, el código emplea una función sigmoide general que depende de la suma de todas las concentraciones de proteínas del sistema (`S`), según la interacción `inter` entre tales proteínas. La expresión `activation = sigmoid(inter * S)` captura la misma propiedad cualitativa de una respuesta sigmoidal (un interruptor suave y saturable), pero lo hace de una manera más abstracta y con menos parámetros, asumiendo que el "estado general" de la red influye en la expresión génica.
+
+    La función específica utilizada es la **función sigmoide**:
+    $$sigmoid(x) = \frac{1}{1 + e^{-k(x - x_0)}}$$
+    - **`x`**: La señal de entrada (concentración ponderada de proteínas).
+    - **`k`**: La pendiente o sensibilidad del "interruptor" genético.
+    - **`x_0`**: El umbral de activación donde la respuesta es la mitad del máximo.
+
+    Esta formulación permite al algoritmo genético optimizar directamente los parámetros `k` y `x_0` para ajustar la dinámica de activación del gen a los datos objetivo.
     
-    Observe la función `_ode_system` en `evaluator_toy.py`. Es precisamente la implementación de un sistema de EDOs acopladas. Cada línea dentro de esa función calcula el d[P]/dt para una proteína del sistema. Los `params` que recibe la función (`producción`, `degradación`, `interacción`) son los coeficientes que corresponden a los términos de nuestro modelo simplificado (análogos a β, γ y los parámetros de la sigmoide). Estos son los parámetros que el algoritmo evolutivo optimizará para definir la dinámica específica de nuestra red.
+    Observe la función `_ode_system` en `evaluator_toy.py`. Es precisamente la implementación de un sistema de EDOs acopladas. Cada línea dentro de esa función calcula el d[P]/dt para una proteína del sistema. Los `params` que recibe la función (`producción`, `degradación`, `interacción`) son los coeficientes que corresponden a los términos de nuestro modelo simplificado (análogos a $\beta$, $\gamma$ y el parámetro `inter` de la sigmoide). Estos son los parámetros que el algoritmo evolutivo optimizará para definir la dinámica específica de nuestra red.
+
 *   **El Problema Inverso - De la Dinámica a los Parámetros**
-    En muchos escenarios, tenemos datos experimentales sobre el comportamiento de un sistema (ej. una serie temporal de la expresión de un gen), pero desconocemos los parámetros cinéticos exactos que generan esa dinámica. Este es el problema inverso o de estimación de parámetros. El objetivo es encontrar los valores de los parámetros (β, γ, K, n) que mejor se ajusten a los datos experimentales. Para resolverlo, definimos una función objetivo (o de coste), J(θ) , donde θ es el vector de parámetros de nuestro modelo. Esta función cuantifica la discrepancia entre la salida de nuestra simulación (simulate(θ)) y los datos experimentales u objetivo deseado (target). Una métrica común es el error cuadrático medio (MSE).
-    J(θ) = Σ ( y_simulado(t, θ) - y_objetivo(t) )²
-    Donde:
-    * Σ representa la suma sobre todos los puntos de tiempo (t) en nuestros datos experimentales.
-    * y_simulado(t, θ) es la concentración de la proteína simulada para el tiempo t y los parámetros θ.
-    * y_objetivo(t) es la concentración experimental de la proteína para el tiempo t.
-    * t es cada punto de tiempo en nuestros datos experimentales.
-
-    El objetivo es encontrar el conjunto de parámetros θ* que minimice esta función: θ* = argmin J(θ)
-    Donde:
-    * argmin representa el valor de θ que minimiza la función J(θ).
-    * θ* es el vector de parámetros que mejor se ajusta a los datos experimentales.
-    * J(θ*) es el valor mínimo de la función objetivo, que indica la mejor discrepancia entre la simulación y los datos experimentales.
-
-    En resumen, el objetivo es encontrar los parámetros θ* que minimicen la discrepancia entre la simulación y los datos experimentales. 
+    En muchos escenarios, tenemos datos experimentales sobre el comportamiento de un sistema (ej. una serie temporal de la expresión de un gen), pero desconocemos los parámetros cinéticos exactos que generan esa dinámica. Este es el problema inverso o de estimación de parámetros. El objetivo es encontrar los valores de los parámetros ($\beta$, $\gamma$, `inter`) que mejor se ajusten a los datos experimentales. 
     
-    La función evaluate en `evaluator_toy.py` es nuestra función objetivo. Toma un conjunto de parámetros, llama a `simulate` para resolver numéricamente las EDOs y obtener la trayectoria del sistema, y luego la compara con el `target`, devolviendo un valor de 'fitness' (que en este caso, es análogo a un coste: menor es mejor). El espacio de posibles parámetros θ es vasto y a menudo de alta dimensionalidad, y la topología de la función de coste J(θ) puede ser compleja y multimodal. Por lo tanto, no podemos simplemente resolver para θ* analíticamente. Necesitamos un algoritmo de búsqueda robusto para explorar este espacio de parámetros. Esto nos lleva directamente a nuestro próximo tema: los algoritmos evolutivos como método de optimización estocástica global.
+    Para resolverlo, definimos una función objetivo (o de coste), J(θ) , donde θ es el vector de parámetros de nuestro modelo. En nuestro caso, la implementación es una versión específica de este problema. La función de coste no compara toda la trayectoria temporal, sino que se enfoca en si el sistema alcanza un **estado final deseado**.
+
+    La función `evaluate` en `evaluator_toy.py` es nuestra función objetivo. Internamente, primero llama a la función `simulate`, que resuelve las EDOs con un conjunto de parámetros `θ` para obtener el estado final del sistema, `y_final(θ)`.
+
+    Luego, `evaluate` calcula una puntuación de 'fitness' que, en nuestro caso, es un coste a minimizar. Este coste se compone de varios términos, como se ve en el código:
+
+    1.  **Distancia L2 (`L2_distance`)**: Mide la distancia euclidiana entre el estado final y el objetivo.
+    2.  **Penalización por Complejidad (`complexity_penalty`)**: Añade un coste si la red reguladora es demasiado compleja, favoreciendo soluciones más simples.
+    3.  **Recompensa por Alcance (`reached_reward`)**: Otorga una bonificación si el estado final está suficientemente cerca del objetivo, para acelerar la convergencia.
+
+    El objetivo final es encontrar el conjunto de parámetros `θ*` que minimice esta función de coste compuesta:
+
+    `θ* = argmin J(θ)`
+
+    Dado que el espacio de parámetros `θ` es vasto y la topología de la función de coste puede ser compleja, necesitamos un algoritmo de búsqueda robusto como los algoritmos evolutivos para explorar eficientemente este espacio y encontrar una solución óptima.
 
 ## **Módulo 2: La Solución Inspirada en la Naturaleza: Algoritmos Genéticos**
 ### **Tema 1: El "Fitness": ¿Qué tan buena es una solución?**
