@@ -4,7 +4,7 @@
 
 El proyecto se centra en un problema de optimización de sistemas de ecuaciones diferenciales ordinarias (EDOs) que modelan redes de regulación génica. El EGA busca los parámetros que mejor ajustan la trayectoria celular (el comportamiento dinámico del sistema) a un estado objetivo predefinido.
 
-## Guía de Uso
+### 1. Guía de Uso
 
 Para explorar y ejecutar este proyecto, por favor, seguí los siguientes pasos en orden.
 
