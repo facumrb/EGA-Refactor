@@ -1,7 +1,7 @@
 # Guía para la comprensión y ejecución de la demo
 
 ### ¿Cuál es la teoría detrás de la demo?
-Para entender en profundidad el funcionamiento de la demo, se recomienda leer el documento "Teoría.md". En este documento se explica todo lo necesario para entender el proyecto completo.
+Para entender en profundidad el funcionamiento de la demo, se recomienda leer el documento [Teoría.md](Teoría.md). En este documento se explica todo lo necesario para entender el proyecto completo.
 Antes o después de comprender la teoría, se debe avanzar a la siguiente sección, en caso de querer una visión resumida del proyecto.
 
 ### ¿Para qué sirve cada archivo?
@@ -33,7 +33,7 @@ Antes o después de comprender la teoría, se debe avanzar a la siguiente secci�
    - Crea nuevos individuos mediante el cruce (crossover) y la mutación de los seleccionados.
    - Repite este ciclo hasta completar el número de generaciones definido en la configuración.
 
-Nota: Al recorrer cada archivo, está la explicación de qué es y hace cada parte del cód	igo.
+Nota: Al recorrer cada archivo, está la explicación de qué es y hace cada parte del código.
 
 ### ¿Cómo interactúan (cronológicamente)?
 El flujo de ejecución es el siguiente:
@@ -56,3 +56,6 @@ El flujo de ejecución es el siguiente:
 
 ### ¿Qué resultado se obtiene?
 El resultado final, que se imprime en la consola, es el mejor conjunto de parámetros encontrado por el algoritmo genético. En el contexto de este proyecto, estos parámetros representan los valores óptimos para el modelo de transcripción biológico que hacen que su comportamiento simulado se acerque lo más posible al comportamiento objetivo definido en el archivo `config.yaml`.
+
+Adicionalmente, el proyecto incluye el script [`compare_simulations.py`](compare_simulations.py) que automatiza la búsqueda de los mejores hiperparámetros. Este script compara sistemáticamente las estrategias de inicialización (`uniform` y `center`) y explora tamaños de población (`populationSize`) en un rango de 10 a 100. Los resultados detallados de esta comparativa, incluyendo las mejores combinaciones encontradas y un análisis de tendencias, se encuentran documentados en el archivo [`Análisis.md`](Análisis.md).
+Para un análisis más profundo desde una perspectiva científica, puedes consultar el documento en la carpeta `estudio científico/`. Además, en la carpeta `plots/` encontrarás diversos scripts para generar visualizaciones de los resultados, las cuales se guardan automáticamente en la subcarpeta `plots/visuals/`.

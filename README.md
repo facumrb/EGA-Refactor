@@ -6,7 +6,6 @@ El proyecto se centra en un problema de optimización de sistemas de ecuaciones 
 
 ## Guía de Uso
 
-Lectura Inicial de la `Guía.md` en `demo` y profundización con la `Teoría.md`.
 Para explorar y ejecutar este proyecto, por favor, seguí los siguientes pasos en orden.
 
 1.  **Clonar el repositorio:** Comenzá clonando este repositorio en tu máquina local. Podes hacerlo usando `git clone` en la terminal:
@@ -48,14 +47,10 @@ El corazón de este proyecto se encuentra en la carpeta `demo/`. Contiene todos 
 -   `ega_core.py`: Contiene la implementación central y genérica del Algoritmo Genético Elitista.
 -   `evaluator_toy.py`: Define el problema específico a optimizar (el sistema de EDOs) y la función de fitness.
 -   `config.yaml`: Archivo de configuración para ajustar los parámetros del algoritmo sin modificar el código.
--   `Guía.md`: Documentación de soporte.
+-   `Guía.md`: Documentación de soporte con enlace a `Teoría.md` y `Análisis.md`.
+-   `Teoría.md`: Documentación de teoría.
+-   `Análisis.md`: Documentación de análisis de resultados.
 -   Los demás archivos son un Notebook de Jupyter (RegeneraciónCelular [NO ESTÁ COMPLETO]), `compare_simulations.py` (genera los resultados optimizados, y la mejor configuración), los `plot_..py` y `presentation` en  `plots/` para visualización (se recomienda ver la presentación para información clara y concisa desde `slide1.html`), el estudio científico "Condrogénesis Computacional" en `estudio científicio`, y `originial_config.yaml` es la configuración antigua original con comentarios.
 
-### 3. Lectura Inicial de la `Guía.md`
-
-Dentro de la carpeta `demo/`, encontrarás el archivo `Guía.md`. Este documento es el punto de partida. Léelo para obtener una visión general de cómo funciona la demostración, cómo se interconectan los archivos y cómo ejecutar el programa.
-
-### 4. Profundización con la `Teoría.md`
-
-
-Una vez que guiado por `Guía.md`, sumergite en `Teoría.md`. Este archivo explica los fundamentos teóricos detrás del proyecto:, incluye el modelado de redes de genes con Ecuaciones Diferenciales Ordinarias (EDOs) para simular su comportamiento, y el uso de un Algoritmo Genético Elitista (EGA) para "evolucionar" una población de posibles soluciones (conjuntos de parámetros) hasta encontrar la que mejor se ajusta al comportamiento deseado.
+### 3. Comprensión del Proyecto
+Para comprender el proyecto, por favor, léete la [Guía.md](demo/Guía.md).
