@@ -54,17 +54,19 @@ La forma más simple de una EDO para la concentración de una proteína P es:
     - **Penalización por Complejidad (Regularización L1):** La función de coste añade un término `self.fitness_penalty_factor * np.sum(np.abs(individual))`. Esta es una técnica de regularización que penaliza a los individuos con parámetros de gran magnitud. En un contexto biológico, esto se alinea con el principio de parsimonia: favorece soluciones más simples y robustas, que dependen de interacciones menos "extremas", evitando el sobreajuste del modelo a nuestro `target` específico.
     - **Heurística de Recompensa (`reached_reward`):** Se incluye una pequeña "recompensa" (un coste negativo) si la trayectoria de la simulación se acerca al objetivo en *cualquier* punto, no solo al final. Esto crea gradientes artificiales en el paisaje de fitness, ayudando a guiar al algoritmo en la dirección correcta, especialmente en las primeras etapas de la búsqueda.
 
-El objetivo del algoritmo es, por lo tanto, encontrar los parámetros que minimicen esta función de coste compuesta, equilibrando la cercanía al objetivo con la simplicidad del modelo. En la conclusión del Módulo 1, establecimos nuestro problema central: el problema inverso. Disponemos de un modelo de sistema dinámico, nuestra red de regulación génica en `evaluator_toy.py`, y un comportamiento objetivo (`target`). La tarea consiste en encontrar el vector de parámetros θ* que minimiza una función de coste J(θ), la cual cuantifica la discrepancia entre la dinámica simulada y la objetivo.
-    θ* = argmin J(θ)
-    Debemos conceptualizar la función J(θ) como un paisaje de fitness (o, más precisamente, un paisaje de coste). Nuestro objetivo es encontrar el punto más bajo (el mínimo global) en este paisaje. Este es el punto que nos da los mejores parámetros para nuestro modelo. En otras palabras, estamos buscando el vector θ* que minimice la función de coste J(θ). En términos más simples, estamos buscando los parámetros que mejor se ajusten a los datos experimentales.
-    Ahora, considera la naturaleza de este paisaje. Dada la no linealidad de las EDOs que modelan las interacciones génicas, este paisaje es complejo, multimodal (con múltiples mínimos locales) y de alta dimensionalidad. Los métodos de optimización basados en gradiente, aunque eficientes, corren un alto riesgo de quedar atrapados en mínimos locales. Resolver para θ* analíticamente es, en la mayoría de los casos, intratable. Por lo tanto, necesitamos un método de búsqueda que sea robusto, capaz de explorar eficazmente este vasto espacio de parámetros y que no dependa de la información del gradiente. Aquí es donde entran en juego las heurísticas de optimización global, y específicamente, los Algoritmos Genéticos.
+El objetivo del algoritmo es, por lo tanto, encontrar los parámetros que minimicen esta función de coste compuesta, equilibrando la cercanía al objetivo con la simplicidad del modelo. En la conclusión del Módulo 1, establecimos nuestro problema central: el problema inverso. Disponemos de un modelo de sistema dinámico, nuestra red de regulación génica en `evaluator_toy.py`, y un comportamiento objetivo (`target`). La tarea consiste en encontrar el vector de parámetros $θ*$ (`prod`, `deg` e `inter` para cada proteína) que minimiza una función de coste $J(θ)$, la cual cuantifica la discrepancia entre la dinámica simulada y la objetivo.
+    $$θ* = argmin J(θ)$$
+    Debemos conceptualizar la función $J(θ)$ como un paisaje de fitness (o, más precisamente, un paisaje de coste). Nuestro objetivo es encontrar el punto más bajo (el mínimo global) en este paisaje. Este es el punto que nos da los mejores parámetros $θ$ para nuestro modelo. En otras palabras, estamos buscando el vector $θ*$ que minimice la función de coste $J(θ)$.
+    Necesitamos un método de búsqueda que sea robusto, capaz de explorar eficazmente este vasto espacio de parámetros. Aquí es donde entran en juego las heurísticas de optimización global, y específicamente, los Algoritmos Genéticos.
 
 ### **Tema 2: La Teoría de la Evolución de Darwin.**
 *   **El Paradigma de la Computación Evolutiva** 
     El Algoritmo Genético, formalizado por John Holland, no es simplemente una analogía con la evolución darwiniana; es un marco computacional robusto. Su poder reside en la manipulación de una población de soluciones candidatas en paralelo, equilibrando dos fuerzas fundamentales: la explotación de las buenas soluciones encontradas y la exploración de nuevas regiones del espacio de búsqueda.
     Vamos a formalizar la analogía con nuestro proyecto:
     Genotipo y Fenotipo:
-    * El Genotipo es la codificación de una solución. En nuestro caso, es el vector de parámetros de punto flotante θ = (prod_params, deg_params, inter_params). En `ega_core.py`, esto está encapsulado en la clase Individual, específicamente en su atributo `self.params`.
+    * El Genotipo es la codificación de una solución. En nuestro caso, es el vector de parámetros de punto flotante 
+    $$θ = (prod, deg, inter) * cantidadProteínas$$
+    En `ega_core.py`, esto está encapsulado en la clase Individual, específicamente en su atributo `self.params`.
     * El Fenotipo es la expresión del genotipo en el entorno del problema. Corresponde a la trayectoria temporal `y_simulado(t, θ)` que resulta de resolver las EDOs con un genotipo θ particular. Este es el resultado de la función simulate en `evaluator_toy.py`.
     La Función de Fitness:
     * El Fitness es una medida cuantitativa de la calidad de un fenotipo. En optimización, está directamente relacionado con la función objetivo. Dado que nuestro J(θ) es una función de coste (menor es mejor), podemos definir el fitness como 1 / (1 + J(θ)) o, como se hace en este proyecto por simplicidad, tratar el coste directamente como un valor a minimizar. La función evaluate en `evaluator_toy.py` es precisamente nuestra J(θ), calculando el error cuadrático medio y una penalización por complejidad.
@@ -91,7 +93,7 @@ El objetivo del algoritmo es, por lo tanto, encontrar los parámetros que minimi
 
 ### **Tema 3: Traduciendo la Evolución a Código.**
 *   **Individuo:** 
-    Es un conjunto de parámetros (las tasas de producción, degradación, etc.). Representa una posible solución a nuestro problema biológico. (Clase `Individual` en `ega_core.py`).
+    Es un conjunto de parámetros (producción, degradación e interacción). Representa una posible solución a nuestro problema biológico. (Clase `Individual` en `ega_core.py`).
 *   **Población:** 
     Un grupo de muchos individuos diferentes, cada uno con sus propios parámetros. (La lista `self.population`).
 *   **Fitness:** 
