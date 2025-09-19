@@ -17,12 +17,6 @@ graph TD
     G -- Reporta resultado final --> H[Consola / Snapshots];
 ```
 
-[ ega_core.py ] <--------- (4. Bucle Evolutivo) --------> [ evaluator_toy.py ]
-(El Optimizador)         (Evalúa cada individuo)         (El Sistema Biológico)
-        |                                                          |
-        | (3. Propone soluciones)                                  | (5. Devuelve 'fitness')
-        
-
 ### Flujo de Datos Detallado:
 
 1.  **`run_demo.py`**: Es el director de orquesta. Lee los parámetros desde `config.yaml`.
