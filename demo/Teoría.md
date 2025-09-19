@@ -71,9 +71,9 @@ El objetivo del algoritmo es, por lo tanto, encontrar los parámetros que minimi
     La Función de Fitness:
     * El Fitness es una medida cuantitativa de la calidad de un fenotipo. En optimización, está directamente relacionado con la función objetivo. Dado que nuestro J(θ) es una función de coste (menor es mejor), podemos definir el fitness como 1 / (1 + J(θ)) o, como se hace en este proyecto por simplicidad, tratar el coste directamente como un valor a minimizar. La función evaluate en `evaluator_toy.py` es precisamente nuestra J(θ), calculando el error cuadrático medio y una penalización por complejidad.
 *   **Anatomía de un Algoritmo Genético Elitista (EGA)**
-    Ahora, diseccionemos la implementación en `ega_core.py`. Este archivo implementa un Algoritmo Genético Elitista (EGA), una variante que garantiza la no degradación de la mejor solución encontrada a lo largo de las generaciones.
+    Ahora, diseccionemos la implementación en `ega_core.py`. Este archivo implementa un Algoritmo Genético Elitista (EGA), una variante que garantiza la no degradación de la mejor solución encontrada a lo largo de las generaciones. Significa que, gracias al elitismo, se garantiza que la calidad de la mejor solución en la población nunca puede empeorar de una generación a la siguiente.
     **Inicialización de la Población:**
-    * El proceso comienza creando una population de N Individual(es). Cada individuo es inicializado con un genotipo θ muestreado aleatoriamente dentro de unos límites predefinidos (bounds en `config.yaml`). Esta es una siembra inicial en el paisaje de fitness para comenzar la búsqueda.
+    * El proceso comienza creando una population de N Individual(s). Cada individuo es inicializado con un genotipo θ muestreado aleatoriamente dentro de unos límites predefinidos (bounds en `config.yaml`). Esta es una siembra inicial en el paisaje de fitness para comenzar la búsqueda.
     **Ciclo Evolutivo (El bucle run):**
     El algoritmo itera a través de un número definido de `generations`.
         * a) Evaluación: Para cada individuo en la población, se calcula su fitness llamando a la función evaluate. Esto es computacionalmente la parte más costosa. Para manejar esta carga y hacer el algoritmo eficiente y robusto, la implementación en `ega_core.py` incluye optimizaciones cruciales:
@@ -93,7 +93,7 @@ El objetivo del algoritmo es, por lo tanto, encontrar los parámetros que minimi
 
 ### **Tema 3: Traduciendo la Evolución a Código.**
 *   **Individuo:** 
-    Es un conjunto de parámetros (producción, degradación e interacción). Representa una posible solución a nuestro problema biológico. (Clase `Individual` en `ega_core.py`).
+    Es un conjunto de parámetros (producción, degradación e interacción, por cada proteína). Representa una posible solución a nuestro problema biológico. (Clase `Individual` en `ega_core.py`).
 *   **Población:** 
     Un grupo de muchos individuos diferentes, cada uno con sus propios parámetros. (La lista `self.population`).
 *   **Fitness:** 
@@ -112,8 +112,8 @@ El objetivo del algoritmo es, por lo tanto, encontrar los parámetros que minimi
 
 ### **Tema 1: Configurando el Experimento.**
 *   **El `config.yaml` como Protocolo Experimental** 
-En nuestro caso, el archivo config.yaml es nuestro protocolo experimental digital. No es una mera lista de parámetros, sino el manifiesto que dicta cada aspecto de nuestra simulación. La externalización de estos parámetros es una práctica fundamental en la ciencia computacional, ya que garantiza la reproducibilidad, flexibilidad y escalabilidad de nuestros hallazgos.
-**Vamos a analizar el archivo `config.yaml`**
+En nuestro caso, el archivo `config.yaml` es nuestro protocolo experimental digital. No es una mera lista de parámetros, sino el manifiesto que dicta cada aspecto de nuestra simulación. La externalización de estos parámetros es una práctica fundamental en la ciencia computacional, ya que garantiza la reproducibilidad, flexibilidad y escalabilidad de nuestros hallazgos.
+**Vamos a analizar algunos de los parámetros del archivo `config.yaml`**
 1.  Parámetros del Algoritmo Genético (Sección `ega`): Estos gobiernan el comportamiento de nuestro motor de optimización, el `ega_core.py`.
     * `populationSize`: El tamaño de nuestra población de soluciones candidatas. Una población más grande permite explorar el espacio de búsqueda más ampliamente, pero a un mayor costo computacional.
     * `generations`: El número de ciclos evolutivos. Define la duración del experimento. Más generaciones dan más tiempo al algoritmo para converger hacia una buena solución.
@@ -123,7 +123,7 @@ En nuestro caso, el archivo config.yaml es nuestro protocolo experimental digita
     * `t_span` y `dt`: Definen el horizonte temporal y la resolución de la simulación de la ODE, análogo a decidir por cuánto tiempo y con qué frecuencia tomamos muestras en un experimento de laboratorio.
     * `target`: Este es el corazón del problema. Representa la dinámica de expresión génica que deseamos replicar, nuestro "fenotipo objetivo". Podría provenir de datos experimentales previos o ser un comportamiento teórico que queremos alcanzar. La función de fitness en `evaluator_toy.py` medirá la distancia entre la simulación de cada individuo y este `target`.
 
-El script `run_demo.py` actúa como el investigador principal: lee meticulosamente este protocolo (`config.yaml`) y lo utiliza para instruir tanto al algoritmo genético como al evaluador, asegurando que el experimento se lleve a cabo exactamente como fue diseñado.
+El script `run_demo.py` actúa como el investigador principal: lee meticulosamente este protocolo (`config.yaml`) y lo utiliza para instruir tanto al algoritmo genético como al evaluador, asegurando que el experimento se lleve a cabo exactamente como fue diseñado. Se recomienda revisar `original_config.yaml` para la explicación de los demás parámetros (son en base a una configuración antigua, pero cumplen las mismas funciones).
 
 ### **Tema 2: Orquestación y Ejecución: `run_demo.py` como Director de Orquesta**
 Si `config.yaml` es la partitura, `run_demo.py` es el director de orquesta. Es el script ejecutable que inicia, coordina y finaliza el experimento, asegurando que todos los componentes interactúen en la secuencia correcta.
@@ -132,7 +132,7 @@ El flujo de ejecución es el siguiente:
 1. Carga del Protocolo: `run_demo.py` comienza cargando la configuración desde `config.yaml`.
 2. Preparación del Laboratorio: Instancia el `ToyODEEvaluator` a partir de `evaluator_toy.py`, pasándole los parámetros del modelo. En este momento, nuestro laboratorio virtual está listo para simular trayectorias genéticas.
 3. Creación del Motor Evolutivo: A continuación, instancia el EGA desde `ega_core.py`. De manera crucial, le pasa no solo sus propios hiperparámetros (tamaño de población, generaciones, etc.), sino también la instancia del evaluador (`ToyODEEvaluator`). Esta conexión es vital: el algoritmo genético ahora tiene un mecanismo para medir el "éxito" (fitness) de cada una de sus soluciones candidatas.
-4. Inicio de la Evolución: Se invoca el método `ega.run()`. Aquí es donde la magia ocurre. Durante cientos de generaciones, el EGA gestionará el ciclo de vida de la población: evaluará cada individuo usando el evaluator, seleccionará a los mejores, los cruzará y los mutará, creando una nueva generación ligeramente más adaptada que la anterior.
+4. Inicio de la Evolución: Se invoca el método `ega.run()`. Aquí es donde la magia ocurre. Durante varias generaciones, el EGA gestionará el ciclo de vida de la población: evaluará cada individuo usando el evaluator, seleccionará a los mejores, los cruzará y los mutará, creando una nueva generación ligeramente más adaptada que la anterior.
 5. Presentación de Resultados: Una vez completadas todas las generaciones, `run_demo.py` reporta el resultado final: los parámetros del mejor individuo encontrado y su valor de fitness. Este es el resultado de nuestro experimento.
 
 ### **Tema 3: El Gran Final: ¿Qué estamos buscando?**
